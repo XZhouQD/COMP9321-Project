@@ -28,7 +28,7 @@ class User():
 			self.password_encrypted = password_encrypted;
 		self.uuid = uuid1()
 
-	def password_change_request(origin_password, new_password, forget=False):
+	def password_change_request(self, origin_password, new_password, forget=False):
 		if forget:
 			self.password_encrypted = sha256(new_password)
 			return True
@@ -38,7 +38,7 @@ class User():
 				return True
 		return False
 
-	def email_change(new_email):
+	def email_change(self, new_email):
 		self.email = new_email
 
 	def getUUID(self):
