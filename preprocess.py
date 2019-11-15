@@ -33,6 +33,7 @@ def print_df(df, print_col=True, print_row=False):
 	if print_row:
 		print(",".join([str(row[column]) for column in df]))
 
+
 if __name__ == '__main__':
 	print("====== Starting Preprocess ======")
 
@@ -46,9 +47,27 @@ if __name__ == '__main__':
 	listings_df = read_csv(listings_file)
 	neighbourhoods_df = read_csv(neighbourhoods_file)
 
+	# discard unwanted columns
 	to_keep = ["id","name","host_id","host_name","host_response_time","host_response_rate","host_neighbourhood","city","property_type","room_type","accommodates","bathrooms","bedrooms","beds","amenities","price","security_deposit","cleaning_fee","guests_included","availability_60","availability_365","review_scores_rating","review_scores_accuracy","review_scores_cleanliness","review_scores_checkin","review_scores_communication","review_scores_location","review_scores_value","latitude","longitude"]
 	listings_df = listings_df[to_keep]
 	neighbourhoods_df = neighbourhoods_df[['neighbourhood']]
+
+	# set index
+	listings_df.set_index("id", inplace=True)
+
+	# make host_response rate from 10% -> 0.1
+	listings_df["host_response_rate"] = listings_df["host_response_rate"].str.strip('%')
+	listings_df["host_response_rate"] = pd.to_numeric(listings_df["host_response_rate"]) / 100
+
+	# remove dollar sign
+	cols = ['price', 'security_deposit', 'cleaning_fee']
+	for col in cols:
+		listings_df[col] = listings_df[col].str.strip('$')
+
+
+	# For debug
+	print(listings_df.head().to_string())
+
 
 	write_csv(listings_df, "listing.csv")
 	write_csv(neighbourhoods_df, "neighbour.csv")
