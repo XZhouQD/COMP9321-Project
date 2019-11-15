@@ -26,6 +26,13 @@ def read_csv(csv_file):
 def write_csv(df, target):
 	df.to_csv(target, sep=',', encoding='utf-8')
 
+def print_df(df, print_col=True, print_row=False):
+	if print_col:
+		print(','.join([column for column in df]))
+
+	if print_row:
+		print(",".join([str(row[column]) for column in df]))
+
 if __name__ == '__main__':
 	print("====== Starting Preprocess ======")
 
@@ -39,8 +46,10 @@ if __name__ == '__main__':
 	listings_df = read_csv(listings_file)
 	neighbourhoods_df = read_csv(neighbourhoods_file)
 
-	print(calendar_df)
-	print(listings_df)
-	print(neighbourhoods_df)
+	to_keep = ["id","name","host_id","host_name","host_response_time","host_response_rate","host_neighbourhood","city","property_type","room_type","accommodates","bathrooms","bedrooms","beds","amenities","price","security_deposit","cleaning_fee","guests_included","availability_60","availability_365","review_scores_rating","review_scores_accuracy","review_scores_cleanliness","review_scores_checkin","review_scores_communication","review_scores_location","review_scores_value","latitude","longitude"]
+	listings_df = listings_df[to_keep]
+	neighbourhoods_df = neighbourhoods_df[['neighbourhood']]
 
+	write_csv(listings_df, "listing.csv")
+	write_csv(neighbourhoods_df, "neighbour.csv")
 	print("====== Preprocess Finished ======")
