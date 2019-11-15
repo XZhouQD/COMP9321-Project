@@ -20,55 +20,83 @@ sqlalchemy 1.3.10
 
 import pandas as pd
 
+
 def read_csv(csv_file):
-	return pd.read_csv(csv_file)
+    return pd.read_csv(csv_file)
+
 
 def write_csv(df, target):
-	df.to_csv(target, sep=',', encoding='utf-8')
+    df.to_csv(target, sep=',', encoding='utf-8')
+
 
 def print_df(df, print_col=True, print_row=False):
-	if print_col:
-		print(','.join([column for column in df]))
+    if print_col:
+        print(','.join([column for column in df]))
 
-	if print_row:
-		print(",".join([str(row[column]) for column in df]))
+    if print_row:
+        print(",".join([str(row[column]) for column in df]))
 
 
 if __name__ == '__main__':
-	print("====== Starting Preprocess ======")
+    print("====== Starting Preprocess ======")
 
-	# related files
-	data_dir = "syd_airbnb_open_data/"
-	calendar_file = data_dir + "calendar_dec18.csv"
-	listings_file = data_dir + "listings_dec18.csv"
-	neighbourhoods_file = data_dir + "neighbourhoods_dec18.csv"
-	# read into dataFrame
-	calendar_df = read_csv(calendar_file)
-	listings_df = read_csv(listings_file)
-	neighbourhoods_df = read_csv(neighbourhoods_file)
+    # related files
+    data_dir = "syd_airbnb_open_data/"
 
-	# discard unwanted columns
-	to_keep = ["id","name","host_id","host_name","host_response_time","host_response_rate","host_neighbourhood","city","property_type","room_type","accommodates","bathrooms","bedrooms","beds","amenities","price","security_deposit","cleaning_fee","guests_included","availability_60","availability_365","review_scores_rating","review_scores_accuracy","review_scores_cleanliness","review_scores_checkin","review_scores_communication","review_scores_location","review_scores_value","latitude","longitude"]
-	listings_df = listings_df[to_keep]
-	neighbourhoods_df = neighbourhoods_df[['neighbourhood']]
+    # ==================== preprocess for neighbourhoods_dec18.csv ======================
+    print('preprocessing neighbourhoods_dec18.csv')
 
-	# set index
-	listings_df.set_index("id", inplace=True)
+    neighbourhoods_file = data_dir + "neighbourhoods_dec18.csv"
+    neighbourhoods_df = read_csv(neighbourhoods_file)
 
-	# make host_response rate from 10% -> 0.1
-	listings_df["host_response_rate"] = listings_df["host_response_rate"].str.strip('%')
-	listings_df["host_response_rate"] = pd.to_numeric(listings_df["host_response_rate"]) / 100
+    # discard unwanted columns
+    neighbourhoods_df = neighbourhoods_df[['neighbourhood']]
 
-	# remove dollar sign
-	cols = ['price', 'security_deposit', 'cleaning_fee']
-	for col in cols:
-		listings_df[col] = listings_df[col].str.strip('$')
+    # write file
+    write_csv(neighbourhoods_df, "neighbour.csv")
 
+    # ======================= preprocess for listings_dec18.csv =========================
+    print('preprocessing listings_dec18.csv')
 
-	# For debug
-	print(listings_df.head().to_string())
+    listings_file = data_dir + "listings_dec18.csv"
+    listings_df = read_csv(listings_file)
 
+    # discard unwanted columns
+    to_keep = ["id", "name", "host_id", "host_name", "host_response_time", "host_response_rate", "host_neighbourhood",
+               "city", "property_type", "room_type", "accommodates", "bathrooms", "bedrooms", "beds", "amenities",
+               "price", "security_deposit", "cleaning_fee", "guests_included", "availability_60", "availability_365",
+               "review_scores_rating", "review_scores_accuracy", "review_scores_cleanliness", "review_scores_checkin",
+               "review_scores_communication", "review_scores_location", "review_scores_value", "latitude", "longitude"]
+    listings_df = listings_df[to_keep]
 
-	write_csv(listings_df, "listing.csv")
-	write_csv(neighbourhoods_df, "neighbour.csv")
-	print("====== Preprocess Finished ======")
+    # set index to id
+    listings_df.set_index("id", inplace=True)
+
+    # make host_response rate from 10% -> 0.1
+    listings_df["host_response_rate"] = listings_df["host_response_rate"].str.strip('%')
+    listings_df["host_response_rate"] = pd.to_numeric(listings_df["host_response_rate"]) / 100
+
+    # remove dollar sign
+    cols = ['price', 'security_deposit', 'cleaning_fee']
+    for col in cols:
+        listings_df[col] = listings_df[col].str.strip('$')
+
+    # write file
+    write_csv(listings_df, "listing.csv")
+
+    # ======================= preprocess for calendar_dec18.csv =========================
+    print('preprocessing calendar_dec18.csv')
+
+    calendar_file = data_dir + "calendar_dec18.csv"
+    calendar_df = read_csv(calendar_file)
+
+    # discard rows which have no price
+    calendar_df.dropna(inplace=True)
+
+    # discard column 'avaliable'
+    calendar_df.drop(columns=['available'], inplace=True)
+
+    # for debug
+    # print(calendar_df.head(100).to_string())
+
+    print("====== Preprocess Finished ======")
