@@ -95,6 +95,8 @@ if __name__ == '__main__':
 
     # discard column 'avaliable'
     calendar_df.drop(columns=['available'], inplace=True)
+    calendar_df.set_index("listing_id", inplace=True)
+    write_csv(calendar_df, "calendar.csv")
 
     # for debug
     # print(calendar_df.head(100).to_string())
