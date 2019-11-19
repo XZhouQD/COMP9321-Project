@@ -1,4 +1,4 @@
-# COMP9417 Assignment 2
+# COMP9321 Assignment 2
 ## Group: Data Analysis Towards Abbriviation
 
 ### Members (In order of Last Name)
