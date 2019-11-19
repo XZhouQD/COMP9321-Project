@@ -16,11 +16,6 @@ Environment:
 Python 3.7
 '''
 import pandas as pd
-<<<<<<< HEAD
-from flask import Flask, request
-from flask_restplus import Resource, Api, fields
-from sqlalchemy import create_engine
-=======
 import jwt
 from functools import wraps
 from flask import Flask
@@ -34,7 +29,6 @@ from time import time
 from itsdangerous import JSONWebSignatureSerializer, BadSignature, SignatureExpired
 
 from user import User
->>>>>>> yefengNiu
 
 app = Flask(__name__)
 api = Api(app, authorizations={
@@ -124,12 +118,6 @@ class Properties(Resource):
 	@api.response(404, 'Property was not found')
 	@api.doc(description="Get properties by ID")
 	def get(self, id):
-<<<<<<< HEAD
-		countApi('/listing', conn)
-		if id not in listings.index:
-			api.abort(404, "Listing {} does not exist".format(id))
-		return dict(listings.loc[id])
-=======
 		count_api('/Property', conn)
 		if id not in properties.index:
 			api.abort(404, "Property {} does not exist".format(id))
@@ -147,37 +135,19 @@ class Properties(Resource):
 		properties.drop(id, inplace=True)
 		return {"message": "Property {} is removed.".format(id)}, 200
 
->>>>>>> yefengNiu
-
 def read_csv(csv_file):
 	return pd.read_csv(csv_file, dtype='str')
-
-<<<<<<< HEAD
-def countApi(api, conn):
-        query = 'INSERT INTO api_calls (api, calls) VALUES (\'' + api + '\', 1) ON CONFLICT (api) DO UPDATE SET calls = api_calls.calls + 1;'
-        conn.execute(query)
-=======
 
 def count_api(api, conn):
 	query = 'INSERT INTO api_calls (api, calls) VALUES (\'' + api + '\', 1) ON CONFLICT (api) DO UPDATE SET calls = api_calls.calls + 1;'
 	conn.execute(query)
 
->>>>>>> yefengNiu
-
 if __name__ == '__main__':
 	engine = create_engine('postgresql://cs9321:comp9321@ali.x-zhou.com:5432/comp9321')
 	conn = engine.connect()
-<<<<<<< HEAD
-	calendar = read_csv('syd_airbnb_open_data/calendar_dec18.csv')
-	listings = read_csv('listing.csv')
-	listings['id'] = pd.to_numeric(listings['id'])
-	listings.set_index('id', inplace=True)
-=======
-
 	properties = read_csv('listing.csv')
 	properties['id'] = pd.to_numeric(properties['id'])
 	properties.set_index('id', inplace=True)
->>>>>>> yefengNiu
 
 	neighbourhood = read_csv('neighbour.csv')
 
