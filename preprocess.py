@@ -98,5 +98,9 @@ if __name__ == '__main__':
 
     # for debug
     # print(calendar_df.head(100).to_string())
+<<<<<<< HEAD
+=======
+    write_csv(calendar_df, "calendar.csv")
+>>>>>>> yefengNiu
 
     print("====== Preprocess Finished ======")
