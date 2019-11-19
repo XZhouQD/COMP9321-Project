@@ -50,5 +50,10 @@ class User():
 	def checkPassword(self, password_input):
 		return sha256(password_input) == self.password_encrypted
 
+	def register(self, conn):
+		query = 'INSERT INTO users (uuid, username, email, password) VALUES (\''+str(self.uuid) + '\', \'' + self.username + '\', \'' + self.email + '\', \'' + self.password_encrypted + '\') ON CONFLICT (uuid) DO UPDATE SET password = \''+self.password_encrypted+'\';'
+		print(query)
+		conn.execute(query)
+
 	def __str__(self):
 		return str(self.uuid) + ':' + self.username + ':' + self.email + ':' + self.password_encrypted
