@@ -145,7 +145,8 @@ def count_api(api, conn):
 	conn.execute(query)
 
 # =================== register ===================
-
+credential_parser.add_argument('email', type=str)
+credential_parser.add_argument('confirm password', type=str)
 @api.route('/register')
 class Register(Resource):
 	@api.response(200, 'Successful')
