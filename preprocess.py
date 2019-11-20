@@ -96,6 +96,9 @@ if __name__ == '__main__':
     # discard column 'avaliable'
     calendar_df.drop(columns=['available'], inplace=True)
 
+    # remove dollar sign
+    calendar_df["price"] = calendar_df["price"].str.strip('$')
+
     # for debug
     # print(calendar_df.head(100).to_string())
     write_csv(calendar_df, "calendar.csv")
