@@ -161,6 +161,29 @@ class Properties(Resource):
 		properties.drop(id, inplace=True)
 		return {"message": "Property {} is removed.".format(id)}, 200
 
+# =================== register ===================
+
+@api.route('/register')
+class Register(Resource):
+	@api.response(200, 'Successful')
+	@api.response(404, 'Registration Failed')
+	@api.doc(description="Generates a new user")
+	@api.expect(credential_parser, validate=True)
+	def get(self):
+		args = credential_parser.parse_args()
+		username = args.get('username')
+		password = args.get('password')
+		user = User.login(conn, username, password)
+		if user is not None:
+			return {"message": "username is existed."},404
+
+
+	def put(self):
+		query = 'select * from users where username = \'' + 'username' + '\';'
+		result = conn.execute(query)
+		if result.rowcount == 1:
+			return None
+
 def read_csv(csv_file):
 	return pd.read_csv(csv_file, dtype='str')
 
