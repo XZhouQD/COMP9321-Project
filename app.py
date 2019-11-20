@@ -164,6 +164,8 @@ class Register(Resource):
 			return {"message": "username is existed."},404
 		if password != confirm_password:
 			return {"message": "passwords are not consistent."}, 404
+		if '@' or '.com' not in email:
+			return {"message": "email format is incorrcect."}, 404
 		#insert new user info
 		User(username, email, password_plain=password, password_encrypted='', role='default', uuid='').commit(conn)
 		return {"message": "welcome to our family, {}".format(username)}, 200
