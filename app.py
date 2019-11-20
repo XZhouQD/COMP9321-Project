@@ -27,6 +27,7 @@ from flask_restplus import reqparse
 from sqlalchemy import create_engine
 from time import time
 from itsdangerous import JSONWebSignatureSerializer, BadSignature, SignatureExpired
+import json
 
 from user import User
 
@@ -110,6 +111,31 @@ class Token(Resource):
 			print(jwt.decode(token, SECRET_KEY, algorithm='HS256'))
 			return {'token': auth.generate_token(user).decode()}
 
+list_parser = reqparse.RequestParser()
+list_parser.add_argument('neighbourhood', type=str)
+list_parser.add_argument('page',type=int)
+
+@api.route('/List')
+class PropertyList(Resource):
+	@api.response(200, 'Successful')
+	@api.doc(description="get a list of 10 properties according to neighbourhood and page no.")
+	@api.expect(list_parser, validate=False)
+	def get(self):
+		args = list_parser.parse_args()
+		neighbourhood = args.get('neighbourhood')
+		page = args.get('page', 1)
+		result_df = properties[(properties['city'] == neighbourhood)]
+		if result_df.shape[0] < 10*(page-1):
+			api.abort(404, "Invalid page {} request".format(page))
+		page_end = min(result_df.shape[0]+1, 10*page)
+		result_df = result_df[10*(page-1):page_end]
+		json_str = result_df.to_json(orient='index')
+		ds = json.loads(json_str)
+		ret = []
+		for idx in ds:
+			property = ds[idx]
+			ret.append(property)
+		return ret
 
 @api.route('/Properties/<int:id>')
 @api.param('id', 'The Property identifier')
