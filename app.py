@@ -44,6 +44,18 @@ api = Api(app, authorizations={
           title="Property Dataset",  # Documentation Title
           description="TODO: edit description")  # Documentation Description
 
+# ============ Some Global variable ==============
+property_type_list = ['All', 'Aparthotel', 'Apartment', 'Barn', 'Bed and breakfast',
+                 'Boat', 'Boutique hotel', 'Bungalow', 'Cabin', 'Camper/rv',
+                 'Campsite', 'Casa particular(cuba)', 'Castle', 'Cave', 'Chalet',
+                 'Condominium', 'Cottage', 'Dome house', 'Earth house', 'Farm stay',
+                 'Guest suite', 'Guesthouse', 'Heritage hotel(India)', 'Hostel',
+                 'Hotel', 'House', 'Hut', 'Island', 'Loft', 'Nature lodge',
+                 'Other', 'Resort', 'Serviced apartment', 'Tent', 'Tiny house', 'Tipi',
+                      'Townhouse', 'Train', 'Treehouse', 'Villa', 'Yurt']
+
+room_type_list = ['All', 'Private room', 'Entire home/apt', 'Shared room']
+
 
 # ============== For Authentication ===============
 class AuthenticationToken:
@@ -98,6 +110,9 @@ search_condition_parser = reqparse.RequestParser()
 search_condition_parser.add_argument('min_price', type=int, default=0)
 search_condition_parser.add_argument('max_price', type=int, default=0)
 search_condition_parser.add_argument('suburb', type=str, default='All')
+search_condition_parser.add_argument('property_type', choices=property_type_list, default='All')
+search_condition_parser.add_argument('room_type', choices=room_type_list, default='All')
+search_condition_parser.add_argument('accommodates', type=int, default=0)
 search_condition_parser.add_argument('cleanliness rating weight', type=float, default=1)
 search_condition_parser.add_argument('location rating weight', type=float, default=1)
 search_condition_parser.add_argument('communication rating weight', type=float, default=1)
@@ -144,9 +159,66 @@ class Token(Resource):
             return {'token': auth.generate_token(user).decode()}
 
 
-@api.route('/properties/<int:id>')
+@api.route('/property/')
+class Property(Resource):
+    @api.response(201, 'Property Created Successfully')
+    @api.response(400, 'Validation Error')
+    @api.doc(description="Add a new book")
+    @api.expect(property_model, validate=True)
+    @requires_auth
+    def post(self):
+        token = request.headers.get('AUTH-TOKEN')
+        user = jwt.decode(token, SECRET_KEY, algorithm='HS256')
+        property = request.json
+        if property['host_neighbourhood'] not in neighbourhood.index:
+            return {"message": "Invalid host neighbourhood"}, 400
+        if property['city'] not in neighbourhood.index:
+            return {"message": "Invalid city"}, 400
+        if property['property_type'] not in property_type_list[1:]:
+            return {"message": "Invalid property type"}, 400
+        if property['room_type'] not in room_type_list[1:]:
+            return {"message": "Invalid room type"}, 400
+
+        to_add = {
+            'name': property['name'],
+            'host_id': user['username'],
+            'host_name': user['username'],
+            'host_neighbourhood': property['host_neighbourhood'],
+            'city': property['city'],
+            'property_type': property['property_type'],
+            'room_type': property['room_type'],
+            'accommodates': property['accommodates'],
+            'bathrooms': property['bathrooms'],
+            'bedrooms': property['bedrooms'],
+            'beds': property['beds'],
+            'amenities': property['amenities'],
+            'price': property['price'],
+            'security_deposit': round(property['security_deposit'], 2),
+            'cleaning_fee': round(property['cleaning_fee'], 2),
+            'guests_included': property['guests_included'],
+            'host_response_time': 0,
+            'availability_60': 60,
+            'availability_365': 365,
+            'review_scores_rating': 80,
+            'review_scores_accuracy': 3,
+            'review_scores_cleanliness': 3,
+            'review_scores_checkin': 3,
+            'review_scores_communication': 3,
+            'review_scores_location': 3,
+            'review_scores_value': 3,
+            'latitude': 0,
+            'longitude': 0,
+            'host_response_rate': 3
+        }
+        new_id = properties.last_valid_index() + 1
+        for key in to_add.keys():
+            properties.loc[new_id, key] = to_add[key]
+        return {"message": "Property {} has been successfully updated".format(new_id)}, 200
+
+
+@api.route('/property/<int:id>')
 @api.param('id', 'The Property identifier')
-class Properties(Resource):
+class PropertyWithID(Resource):
     @api.response(200, 'Successful')
     @api.response(404, 'Property was not found')
     @api.doc(description="Get properties by ID")
@@ -169,7 +241,7 @@ class Properties(Resource):
         return {"message": "Property {} is removed.".format(id)}, 200
 
 
-@api.route('/property/')
+@api.route('/property_list/')
 class PropertyList(Resource):
     @api.response(201, 'Property Created Successfully')
     @api.response(400, 'Validation Error')
@@ -181,6 +253,9 @@ class PropertyList(Resource):
         min_price = args.get('min_price')
         max_price = args.get('max_price')
         suburb = args.get('suburb')
+        property_type = args.get('property_type')
+        room_type = args.get('room_type')
+        accommodates = args.get('accommodates')
         cleanliness_rating_weight = args.get('cleanliness rating weight')
         location_rating_weight = args.get('location rating weight')
         communication_rating_weight = args.get('communication rating weight')
@@ -188,10 +263,16 @@ class PropertyList(Resource):
         sorting = args.get('sorting')
         page = args.get('page')
 
-        # suburb filter
+        # filters
         property_results = properties
         if suburb != 'All':
-            property_results = properties[properties.city == suburb]
+            property_results = property_results[property_results.city == suburb]
+        if property_type != 'All':
+            property_results = property_results[property_results.property_type == property_type]
+        if room_type != 'All':
+            property_results = property_results[property_results.room_type == room_type]
+        if int(accommodates) != 0:
+            property_results = property_results[property_results.amenities == accommodates]
         # price_filter
         if min_price > max_price:
             return {'message': "Invalid price range"}, 400
@@ -216,7 +297,7 @@ class PropertyList(Resource):
         if property_results.shape[0] == 0:
             return {'message': "No search result"}, 404
 
-        # get 10 results by page
+        # get at most 10 results by page
         if property_results.shape[0] < 10 * (page - 1):
             return {'message': "Invalid page {} request".format(page)}, 404
         page_end = min(property_results.shape[0] + 1, 10 * page)
@@ -230,69 +311,6 @@ class PropertyList(Resource):
             property = ds[idx]
             ret.append(property)
         return ret
-
-    @api.response(201, 'Property Created Successfully')
-    @api.response(400, 'Validation Error')
-    @api.doc(description="Add a new book")
-    @api.expect(property_model, validate=True)
-    @requires_auth
-    def post(self):
-        token = request.headers.get('AUTH-TOKEN')
-        user = jwt.decode(token, SECRET_KEY, algorithm='HS256')
-        property = request.json
-        if property['host_neighbourhood'] not in neighbourhood.index:
-            return {"message": "Invalid host neighbourhood"}, 400
-        if property['city'] not in neighbourhood.index:
-            return {"message": "Invalid city"}, 400
-        if property['property_type'] not in ['aparthotel', 'apartment', 'barn', 'bed and breakfast',
-                                             'boat', 'boutique hotel', 'bungalow', 'cabin', 'camper/rv',
-                                             'campsite', 'casa particular(cuba)', 'castle', 'cave', 'chalet',
-                                             'condominium', 'cottage', 'dome house', 'earth house', 'farm stay',
-                                             'guest suite', 'guesthouse', 'heritage hotel(India)', 'hostel',
-                                             'hotel', 'house', 'house', 'hut', 'island', 'loft', 'nature  lodge',
-                                             'other', 'resort', 'serviced apartment', 'tent', 'tiny house', 'tipi',
-                                             'townhouse', 'train', 'treehouse', 'villa', 'yurt']:
-            return {"message": "Invalid property type"}, 400
-        if property['room_type'] not in ['private room', 'entire room/apt', 'shared room']:
-            return {"message": "Invalid room type"}, 400
-
-        print(properties.keys())
-
-        to_add = {
-            'name': property['name'],
-            'host_id': user['username'],
-            'host_name': user['username'],
-            'host_neighbourhood': property['host_neighbourhood'],
-            'city': property['city'],
-            'property_type': property['property_type'],
-            'room_type': property['room_type'],
-            'accommodates': property['accommodates'],
-            'bathrooms': property['bathrooms'],
-            'bedrooms': property['bedrooms'],
-            'beds': property['beds'],
-            'amenities': property['amenities'],
-            'price': property['price'],
-            'security_deposit': round(property['security_deposit'], 2),
-            'cleaning_fee': round(property['cleaning_fee'], 2),
-            'guests_included': property['guests_included'],
-            'host_response_time': 0,
-            'availability_60': 60,
-            'availability_365': 365,
-            'review_scores_rating': 0,
-            'review_scores_accuracy': 0,
-            'review_scores_cleanliness': 0,
-            'review_scores_checkin': 0,
-            'review_scores_communication': 0,
-            'review_scores_location': 0,
-            'review_scores_value': 0,
-            'latitude': 0,
-            'longitude': 0,
-            'host_response_rate': 0
-        }
-        new_id = properties.last_valid_index() + 1
-        for key in to_add.keys():
-            properties.loc[new_id, key] = to_add[key]
-        return {"message": "Property {} has been successfully updated".format(new_id)}, 200
 
 
 @api.route('/date_price/<int:id>')
