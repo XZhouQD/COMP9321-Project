@@ -26,7 +26,7 @@ class User():
         if password_encrypted == "":
             self.password_encrypted = sha256(password_plain)
         else:
-            self.password_encrypted = password_encrypted;
+            self.password_encrypted = password_encrypted
         self.role = role
         if not uuid == '':
             self.uuid = uuid
@@ -37,14 +37,23 @@ class User():
     def login(conn, username, password_plain):
         query = 'select * from users where username = \'' + username + '\';'
         result = conn.execute(query)
-        if result.rowcount == 0: return None;
+        if result.rowcount == 0:
+            return None
         row = result.fetchone()
         temp_user = User(row['username'], row['email'], password_encrypted=row['password'], role=row['role'],
-                        uuid=row['uuid'])
-        if temp_user.checkPassword(password_plain):
+                         uuid=row['uuid'])
+        if temp_user.check_password(password_plain):
             return {'username': username, 'role': row['role']}
         else:
             return None
+
+    @staticmethod
+    def is_username_exists(conn, username):
+        query = 'select * from users where username = \'' + username + '\';'
+        result = conn.execute(query)
+        if result.rowcount == 0:
+            return False
+        return True
 
     def password_change_request(self, origin_password, new_password):
         if self.password_encrypted == sha256(new_password):
@@ -55,16 +64,16 @@ class User():
     def email_change(self, new_email):
         self.email = new_email
 
-    def getUUID(self):
+    def get_uuid(self):
         return self.uuid
 
-    def getEmail(self):
+    def get_email(self):
         return self.email
 
-    def checkPassword(self, password_input):
+    def check_password(self, password_input):
         return sha256(password_input) == self.password_encrypted
 
-    def updateRole(self, role='default'):
+    def update_role(self, role='default'):
         self.role = role
 
     def commit(self, conn):

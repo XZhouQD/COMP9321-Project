@@ -28,6 +28,7 @@ from flask_restplus import reqparse
 from sqlalchemy import create_engine
 from time import time
 from itsdangerous import JSONWebSignatureSerializer, BadSignature, SignatureExpired
+import re
 
 from user import User
 
@@ -106,6 +107,11 @@ credential_parser = reqparse.RequestParser()
 credential_parser.add_argument('username', type=str)
 credential_parser.add_argument('password', type=str)
 
+register_parser = reqparse.RequestParser()
+register_parser.add_argument('username', type=str)
+register_parser.add_argument('password', type=str)
+register_parser.add_argument('email', type=str)
+
 search_condition_parser = reqparse.RequestParser()
 search_condition_parser.add_argument('min_price', type=int, default=0)
 search_condition_parser.add_argument('max_price', type=int, default=0)
@@ -157,6 +163,28 @@ class Token(Resource):
             token = auth.generate_token(user).decode()
             print(jwt.decode(token, SECRET_KEY, algorithm='HS256'))
             return {'token': auth.generate_token(user).decode()}
+
+
+@api.route('/register')
+class Register(Resource):
+    @api.response(200, 'Successful')
+    @api.response(400, 'Registration Failed')
+    @api.doc(description="Generates a new user")
+    @api.expect(register_parser, validate=True)
+    def get(self):
+        args = register_parser.parse_args()
+        username = args.get('username')
+        password = args.get('password')
+        email = args.get('email')
+        # check email format
+        regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+        if not re.search(regex, email):
+            return {"message": "Invalid Email Address."}, 400
+        if User.is_username_exists(conn, username):
+            return {"message": "username is existed."}, 400
+        else:
+            User(username, email, password).commit(conn)
+            return {"message": "Register Successfully"}, 200
 
 
 @api.route('/property/')
