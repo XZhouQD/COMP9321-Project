@@ -17,6 +17,7 @@ Python 3.7
 '''
 import pandas as pd
 import jwt
+import json
 from functools import wraps
 from flask import Flask
 from flask import request
@@ -88,27 +89,22 @@ def requires_auth(f):
     return decorated
 
 
+# ================== Parsers ====================
 credential_parser = reqparse.RequestParser()
 credential_parser.add_argument('username', type=str)
 credential_parser.add_argument('password', type=str)
 
-# id, => list.id[-1]+1
-# name, => field.String
-# host_id => autoGetFromUser
-# host_name, => username
-# host_neighbourhood, => field.String
-# city, => field.String
-# property_type, =>field.Enum
-# room_type, =>field.Enum
-# accommodates, =>field.integer
-# bathrooms, =>field.integer
-# bedrooms, =>field.integer
-# beds, =>field.integer
-# amenities, => Set of String
-# price, =>field.double
-# security_deposit, =>field.double
-# cleaning_fee, =>field.double
-# guests_included, =>field.integer
+search_condition_parser = reqparse.RequestParser()
+search_condition_parser.add_argument('min_price', type=int, default=0)
+search_condition_parser.add_argument('max_price', type=int, default=0)
+search_condition_parser.add_argument('suburb', type=str, default='All')
+search_condition_parser.add_argument('cleanliness rating weight', type=float, default=1)
+search_condition_parser.add_argument('location rating weight', type=float, default=1)
+search_condition_parser.add_argument('communication rating weight', type=float, default=1)
+search_condition_parser.add_argument('order_by', choices=['price', 'total_rating'], default='price')
+search_condition_parser.add_argument('sorting', choices=['ascending', 'descending'])
+search_condition_parser.add_argument('page', type=int, default=1)
+
 # =================== Models ====================
 property_model = api.model('Property', {
     'name': fields.String,
@@ -121,7 +117,7 @@ property_model = api.model('Property', {
     'bedrooms': fields.Integer,
     'beds': fields.Integer,
     'amenities': fields.String,
-    'price': fields.Arbitrary,
+    'price': fields.Float,
     'security_deposit': fields.Float,
     'cleaning_fee': fields.Float,
     'guests_included': fields.Integer
@@ -175,19 +171,66 @@ class Properties(Resource):
 
 @api.route('/property/')
 class PropertyList(Resource):
-    # 'name': fields.String,
-    # 'host_neighbourhood': fields.String,
-    # 'city': fields.String,
-    # 'property_type': fields.String,
-    # 'room_type': fields.String,
-    # 'bathrooms': fields.Integer,
-    # 'bedrooms': fields.Integer,
-    # 'beds': fields.Integer,
-    # 'amenities': fields.String,
-    # 'price': fields.Arbitrary,
-    # 'security_deposit': fields.Float,
-    # 'cleaning_fee': fields.Float,
-    # 'guests_included': fields.Integer
+    @api.response(201, 'Property Created Successfully')
+    @api.response(400, 'Validation Error')
+    @api.doc(description="Get a property list by many different")
+    @api.expect(search_condition_parser, validate=True)
+    @requires_auth
+    def get(self):
+        args = search_condition_parser.parse_args()
+        min_price = args.get('min_price')
+        max_price = args.get('max_price')
+        suburb = args.get('suburb')
+        cleanliness_rating_weight = args.get('cleanliness rating weight')
+        location_rating_weight = args.get('location rating weight')
+        communication_rating_weight = args.get('communication rating weight')
+        order_by = args.get('order_by')
+        sorting = args.get('sorting')
+        page = args.get('page')
+
+        # suburb filter
+        property_results = properties
+        if suburb != 'All':
+            property_results = properties[properties.city == suburb]
+        # price_filter
+        if min_price > max_price:
+            return {'message': "Invalid price range"}, 400
+        elif min_price == 0 and max_price == 0:
+            pass
+        else:
+            property_results = property_results[property_results.price <= int(max_price)]
+            property_results = property_results[property_results.price >= int(min_price)]
+
+        # total_rating =
+        # rating[0-100] + weight1 * cleanliness[0-10] + weight2 * location[0-10] + weight3 * communication[0-10]
+        # add rating column:
+        property_results['total_rating'] = property_results['review_scores_rating'] + \
+                                           cleanliness_rating_weight * property_results['review_scores_cleanliness'] + \
+                                           location_rating_weight * property_results['review_scores_location'] + \
+                                           communication_rating_weight * property_results['review_scores_communication']
+
+        # sorting
+        ascending = (sorting == 'ascending')
+        property_results.sort_values(by=order_by, inplace=True, ascending=ascending)
+
+        if property_results.shape[0] == 0:
+            return {'message': "No search result"}, 404
+
+        # get 10 results by page
+        if property_results.shape[0] < 10 * (page - 1):
+            return {'message': "Invalid page {} request".format(page)}, 404
+        page_end = min(property_results.shape[0] + 1, 10 * page)
+        property_results = property_results[10 * (page - 1):page_end]
+
+        # generate json file
+        json_str = property_results.head(10).to_json(orient='index')
+        ds = json.loads(json_str)
+        ret = []
+        for idx in ds:
+            property = ds[idx]
+            ret.append(property)
+        return ret
+
     @api.response(201, 'Property Created Successfully')
     @api.response(400, 'Validation Error')
     @api.doc(description="Add a new book")
@@ -252,20 +295,20 @@ class PropertyList(Resource):
         return {"message": "Property {} has been successfully updated".format(new_id)}, 200
 
 
-@api.route('/calendar/<int:id>')
+@api.route('/date_price/<int:id>')
 @api.param('id', 'The Property identifier')
 class PriceList(Resource):
     @api.response(200, 'Successful')
     @api.response(404, 'Property was not found')
+    @api.response(400, 'Validation Error')
     @api.doc(description="Get properties datetime and price by ID")
+    @requires_auth
     def get(self, id):
         date_price_list = []
-        calendar_results = calendar[calendar.listing_id == '14250']
+        calendar_results = calendar[calendar.listing_id == id]
         for row_num in range(0, calendar_results.shape[0]):
             date_price_list.append((calendar_results.iloc[row_num]['date'], calendar_results.iloc[row_num]['price']))
         return dict(date_price_list)
-
-
 
 
 def read_csv(csv_file):
@@ -284,6 +327,12 @@ if __name__ == '__main__':
     # initialize listings_df => properties
     properties = read_csv('listing.csv')
     properties['id'] = pd.to_numeric(properties['id'])
+    properties['price'] = pd.to_numeric(properties['price'])
+    properties['review_scores_rating'] = pd.to_numeric(properties['review_scores_rating'])
+    properties['review_scores_cleanliness'] = pd.to_numeric(properties['review_scores_cleanliness'])
+    properties['review_scores_communication'] = pd.to_numeric(properties['review_scores_communication'])
+    properties['review_scores_location'] = pd.to_numeric(properties['review_scores_location'])
+
     properties.set_index('id', inplace=True)
 
     # initialize neighbourhood_df => neighbourhood

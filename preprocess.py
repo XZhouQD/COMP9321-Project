@@ -76,10 +76,11 @@ if __name__ == '__main__':
     listings_df["host_response_rate"] = listings_df["host_response_rate"].str.strip('%')
     listings_df["host_response_rate"] = pd.to_numeric(listings_df["host_response_rate"]) / 100
 
-    # remove dollar sign
+    # remove dollar sign and comma
     cols = ['price', 'security_deposit', 'cleaning_fee']
     for col in cols:
         listings_df[col] = listings_df[col].str.strip('$')
+        listings_df[col] = listings_df[col].str.replace(',', '')
 
     # write file
     write_csv(listings_df, "listing.csv")
@@ -98,6 +99,7 @@ if __name__ == '__main__':
 
     # remove dollar sign
     calendar_df["price"] = calendar_df["price"].str.strip('$')
+    listings_df[col] = listings_df[col].str.replace(',', '')
 
     # for debug
     # print(calendar_df.head(100).to_string())
