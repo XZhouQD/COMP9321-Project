@@ -101,6 +101,7 @@ if __name__ == '__main__':
     calendar_df["price"] = calendar_df["price"].str.strip('$')
     listings_df[col] = listings_df[col].str.replace(',', '')
 
+
     # for debug
     # print(calendar_df.head(100).to_string())
     write_csv(calendar_df, "calendar.csv")

@@ -81,6 +81,7 @@ class AuthenticationToken:
         return info['username']
 
 
+
 SECRET_KEY = "A SECRET KEY; USUALLY A VERY LONG RANDOM STRING"
 expires_in = 600
 auth = AuthenticationToken(SECRET_KEY, expires_in)
@@ -365,6 +366,10 @@ def count_api(api, conn):
     query = 'INSERT INTO api_calls (api, calls) VALUES (\'' + api + '\', 1) ON CONFLICT (api) DO UPDATE SET calls = api_calls.calls + 1;'
     conn.execute(query)
 
+
+def count_api(api, conn):
+	query = 'INSERT INTO api_calls (api, calls) VALUES (\'' + api + '\', 1) ON CONFLICT (api) DO UPDATE SET calls = api_calls.calls + 1;'
+	conn.execute(query)
 
 if __name__ == '__main__':
     engine = create_engine('postgresql://cs9321:comp9321@ali.x-zhou.com:5432/comp9321')
