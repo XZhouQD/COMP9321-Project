@@ -1,9 +1,11 @@
-# Our own data
-syd_airbnb_open_data/
-*.csv
+# Our own data for back-end
+server/syd_airbnb_open_data/
+server/*.csv
+syd_data.tgz
 
 # idea config files
 .idea/
+server/.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
