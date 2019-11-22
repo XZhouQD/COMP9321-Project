@@ -107,11 +107,6 @@ credential_parser = reqparse.RequestParser()
 credential_parser.add_argument('username', type=str)
 credential_parser.add_argument('password', type=str)
 
-register_parser = reqparse.RequestParser()
-register_parser.add_argument('username', type=str)
-register_parser.add_argument('password', type=str)
-register_parser.add_argument('email', type=str)
-
 search_condition_parser = reqparse.RequestParser()
 search_condition_parser.add_argument('min_price', type=int, default=0)
 search_condition_parser.add_argument('max_price', type=int, default=0)
@@ -154,6 +149,23 @@ prefs_model = api.model('Prefs', {
     'communication': fields.Float
 })
 
+register_model = api.model('Register', {
+    'username': fields.String,
+    'email': fields.String,
+    'password': fields.String,
+    'repeat_password': fields.String
+})
+
+password_change_model = api.model('Password_Change', {
+    'old_password': fields.String,
+    'new_password': fields.String,
+    'repeat_new_password': fields.String
+})
+
+email_change_model = api.model('Email_Change', {
+    'new_email': fields.String,
+})
+
 @api.route('/token')
 class Token(Resource):
     @api.response(200, 'Successful')
@@ -179,21 +191,22 @@ class Register(Resource):
     @api.response(200, 'Successful')
     @api.response(400, 'Registration Failed')
     @api.doc(description="Generates a new user")
-    @api.expect(register_parser, validate=True)
-    def get(self):
-        args = register_parser.parse_args()
-        username = args.get('username')
-        password = args.get('password')
-        email = args.get('email')
-        # check email format
+    @api.expect(register_model, validate=True)
+    def post(self):
+        register_info = request.json
+        username = register_info['username']
+        email = register_info['email']
+        password = register_info['password']
+        repeat_password = register_info['repeat_password']
+        if password != repeat_password:
+            return {"message": "Password not match."}, 400
         regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
         if not re.search(regex, email):
             return {"message": "Invalid Email Address."}, 400
         if User.is_username_exists(conn, username):
             return {"message": "username exists."}, 400
-        else:
-            User(username, email, password).commit(conn)
-            return {"message": "Register Successfully"}, 200
+        User(username, email, password).commit(conn)
+        return {"message": "Register Successfully"}, 200
 
 @api.route('/user/prefs')
 class Prefernces(Resource):
@@ -215,6 +228,53 @@ class Prefernces(Resource):
         User.set_prefs(conn, user['username'], cleanliness=prefs['cleanliness'], location=prefs['location'], communication = prefs['communication'])
         return {"message": "User preferences for {} has been updated".format(user['username'])}, 200
 
+@api.route('/user/change_password')
+class ChangePassword(Resource):
+    @api.response(201, 'Update Password Success')
+    @api.response(400, 'Password Update Error')
+    @api.doc(description="Change existing password of user")
+    @api.expect(password_change_model, validate=True)
+    @requires_auth
+    def post(self):
+        token = request.headers.get('AUTH-TOKEN')
+        user = jwt.decode(token, SECRET_KEY, algorithm='HS256')
+        pwd_info = request.json
+        old_password = pwd_info['old_password']
+        new_password = pwd_info['new_password']
+        repeat_new_password = pwd_info['repeat_new_password']
+        username = user['username']
+        current_user = User.get_user_object(conn, username)
+        if current_user == None:
+            return {"message": "User does not exist."}, 400
+        if new_password != repeat_new_password:
+            return {"message": "Password does not match."}, 400
+        if current_user.password_change_request(conn, old_password, new_password):
+            return {"message": "Password has been updated."}, 200
+        return {"message": "Original Password is not correct."}, 400
+
+@api.route('/user/change_email')
+class ChangeEmail(Resource):
+    @api.response(201, 'Update Email Success')
+    @api.response(400, 'Password Update Error')
+    @api.doc(description="Change existing email of user")
+    @api.expect(email_change_model, validate=True)
+    @requires_auth
+    def post(self):
+        token = request.headers.get('AUTH-TOKEN')
+        user = jwt.decode(token, SECRET_KEY, algorithm='HS256')
+        email_info = request.json
+        new_email = email_info['new_email']
+        regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+        if not re.search(regex, new_email):
+            return {"message": "Invalid Email Address."}, 400
+        username = user['username']
+        current_user = User.get_user_object(conn, username)
+        if current_user == None:
+            return {"message": "User does not exist."}, 400
+        current_user.email_change(conn, new_email)
+        return {"message": "Email has been updated."}, 200
+        
+        
 @api.route('/user/')
 class Profile(Resource):
     @api.response(200, 'Success')

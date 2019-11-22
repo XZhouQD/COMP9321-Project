@@ -46,6 +46,17 @@ class User():
             return {'username': username, 'role': row['role']}
         else:
             return None
+            
+    @staticmethod
+    def get_user_object(conn, username):
+        query = 'select * from users where username = \'' + username + '\';'
+        result = conn.execute(query)
+        if result.rowcount == 0:
+            return None
+        row = result.fetchone()
+        temp_user = User(row['username'], row['email'], password_encrypted=row['password'], role=row['role'],
+                         uuid=row['uuid'])
+        return temp_user
 
     @staticmethod
     def is_username_exists(conn, username):
@@ -78,14 +89,16 @@ class User():
         row = result.fetchone()
         return row
         
-    def password_change_request(self, origin_password, new_password):
-        if self.password_encrypted == sha256(new_password):
+    def password_change_request(self, conn, origin_password, new_password):
+        if self.password_encrypted == sha256(origin_password):
             self.password_encrypted = sha256(new_password)
+            self.commit(conn)
             return True
         return False
 
-    def email_change(self, new_email):
+    def email_change(self, conn, new_email):
         self.email = new_email
+        self.commit(conn)
 
     def get_uuid(self):
         return self.uuid
