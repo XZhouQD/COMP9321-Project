@@ -122,7 +122,7 @@ search_condition_parser.add_argument('accommodates', type=int, default=0)
 search_condition_parser.add_argument('cleanliness rating weight', type=float, default=1)
 search_condition_parser.add_argument('location rating weight', type=float, default=1)
 search_condition_parser.add_argument('communication rating weight', type=float, default=1)
-search_condition_parser.add_argument('order_by', choices=['price', 'total_rating'], default='price')
+search_condition_parser.add_argument('order_by', choices=['price', 'total_rating', 'customized_rating'], default='price')
 search_condition_parser.add_argument('sorting', choices=['ascending', 'descending'], default='ascending')
 search_condition_parser.add_argument('page', type=int, default=1)
 
@@ -277,6 +277,10 @@ class PropertyList(Resource):
     @api.expect(search_condition_parser, validate=True)
     @requires_auth
     def get(self):
+        # get user from header
+        token = request.headers.get('AUTH-TOKEN')
+        user = jwt.decode(token, SECRET_KEY, algorithm='HS256')
+
         args = search_condition_parser.parse_args()
         min_price = args.get('min_price')
         max_price = args.get('max_price')
@@ -320,7 +324,19 @@ class PropertyList(Resource):
 
         # sorting
         ascending = (sorting == 'ascending')
-        property_results.sort_values(by=order_by, inplace=True, ascending=ascending)
+        if order_by == 'price':
+            property_results.sort_values(by=order_by, inplace=True, ascending=ascending)
+        if order_by == 'total_rating':
+            property_results['total_rating'] = property_results['review_scores_rating'] + \
+                                               cleanliness_rating_weight * property_results['review_scores_cleanliness'] + \
+                                               location_rating_weight * property_results['review_scores_location'] + \
+                                               communication_rating_weight * property_results['review_scores_communication']
+            property_results.sort_values(by='price', inplace=True, ascending=True)
+            property_results.sort_values(by='total_rating', inplace=True, ascending=True)
+        if order_by == 'customized_rating':
+            property_results.sort_values(by='price', inplace=True, ascending=True)
+
+
 
         if property_results.shape[0] == 0:
             return {'message': "No search result"}, 404
