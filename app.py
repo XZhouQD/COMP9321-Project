@@ -257,8 +257,17 @@ class PropertyWithID(Resource):
         count_api('/Property', conn)
         if id not in properties.index:
             api.abort(404, "Property {} does not exist".format(id))
-        property = dict(properties.loc[id])
-        return property
+        #property = properties.loc[id]
+        json_str = properties[properties.index == id].to_json(orient='index')
+        ds = json.loads(json_str)
+        #ret = []
+        #for idx in ds:
+        #    property = ds[idx]
+        #    ret.append(property)
+        return ds
+        #json_str = property.to_json()
+        #ds = json.loads(json_str)
+        #return json.dumps(ds)
 
     @api.response(200, 'Successful')
     @api.response(400, 'Validation Error')
@@ -271,6 +280,23 @@ class PropertyWithID(Resource):
         properties.drop(id, inplace=True)
         return {"message": "Property {} is removed.".format(id)}, 200
 
+@api.route('/property/return/<int:id>')
+@api.param('id', 'The Property identifier')
+class estimateReturnWithID(Resource):
+    @api.response(200, 'Successful')
+    @api.response(404, 'Property was not found')
+    @api.doc('Get estimated price for property by estimating similar properties in the neighbourhood')
+    def get(self, id):
+        count_api('/Property/return', conn)
+        if id not in properties.index:
+            api.abort(404, "Property {} does not exist".format(id))
+        city = properties.loc[id, 'city']
+        property_type = properties.loc[id, 'property_type']
+        room_type = properties.loc[id, 'room_type']
+        accommodates = properties.loc[id, 'accommodates']
+        similar_df = properties[(properties.city == city) | (properties.property_type == property_type) | (properties.room_type == room_type) | (properties.accommodates == accommodates)]
+        estimated = similar_df['price'].mean().round(2)
+        return {"return": estimated}, 200
 
 @api.route('/property_list/')
 class PropertyList(Resource):
@@ -421,6 +447,7 @@ if __name__ == '__main__':
     properties['review_scores_communication'] = pd.to_numeric(properties['review_scores_communication'])
     properties['review_scores_location'] = pd.to_numeric(properties['review_scores_location'])
     properties['accommodates'] = pd.to_numeric(properties['accommodates'])
+    properties['property_id'] = properties['id']
 
     properties.set_index('id', inplace=True)
 
