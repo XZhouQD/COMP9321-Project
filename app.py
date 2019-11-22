@@ -124,6 +124,10 @@ search_condition_parser.add_argument('order_by', choices=['price', 'total_rating
 search_condition_parser.add_argument('sorting', choices=['ascending', 'descending'], default='ascending')
 search_condition_parser.add_argument('page', type=int, default=1)
 
+prediction_parser = reqparse.RequestParser()
+prediction_parser.add_argument('id', type=int)
+prediction_parser.add_argument('date', type=str)
+
 # =================== Models ====================
 property_model = api.model('Property', {
     'name': fields.String,
@@ -353,6 +357,26 @@ class PriceList(Resource):
         for row_num in range(0, calendar_results.shape[0]):
             date_price_list.append((calendar_results.iloc[row_num]['date'], calendar_results.iloc[row_num]['price']))
         return dict(date_price_list)
+
+@api.route('/prediction')
+@api.param('id', 'The property identifier')
+@api.param('date', 'The prediction date, Year-Month-Date, eg: 2019-12-12')
+class Prediction(Resource):
+    @api.response(200, 'Successful')
+    @api.response(401, 'Unauthorized')
+    @api.response(400, 'Bad Request')
+    @api.doc(description="Prediction for the property price in specific date.")
+    @requires_auth
+    def get(self):
+        args = prediction_parser.parse_args()
+        id = args.get('id')
+        date = args.get('date')
+        predicted_price = predict(id, date)
+        if predicted_price is None:
+            return {"The historical data is not enough for prediction"}, 401
+
+        else:
+            return {'predicted_price': predicted_price}, 200
 
 
 def read_csv(csv_file):

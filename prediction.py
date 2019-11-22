@@ -24,7 +24,7 @@ def predict(suburb, date):
     df = pd.read_csv('calendar.csv')
 
     a = get_listings(df)
-    print(a)
+    # print(a)
     listing = get_listing_data(df, suburb)
     listing.drop(['listing_id'], axis=1, inplace=True)
     listing.set_index("date", inplace=True)
@@ -34,10 +34,10 @@ def predict(suburb, date):
     starts = datetime.datetime.strptime(start, '%Y-%m-%d')
     difference = (datetime.datetime.strptime(date, '%Y-%m-%d') - starts).days
 
-    print(listing)
+    # print(listing)
 
     vertical = listing.index.tolist()
-    print(vertical)
+    # print(vertical)
     horizontal = listing['price'].tolist()
 
     length = len(vertical)
@@ -53,15 +53,15 @@ def predict(suburb, date):
     y = linear.coef_ * difference + linear.intercept_
     y = round(float(y), 2)
     if len(listing) <= 10:
-        y = "The historical data is not enough for prediction"
+        y = None
 
-    print(y)
-    plt.scatter(vertical, horizontal, color='red')
-    plt.plot(X, linear.predict(X), color='blue')
-    plt.xlabel('Date')
-    plt.ylabel('Price')
-    plt.title(suburb)
-    plt.show()
+    # print(y)
+    # plt.scatter(vertical, horizontal, color='red')
+    # plt.plot(X, linear.predict(X), color='blue')
+    # plt.xlabel('Date')
+    # plt.ylabel('Price')
+    # plt.title(suburb)
+    # plt.show()
     return y
 
 predict(30592505, '2019-08-01')
