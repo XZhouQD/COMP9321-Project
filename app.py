@@ -120,7 +120,8 @@ search_condition_parser.add_argument('accommodates', type=int, default=0)
 search_condition_parser.add_argument('cleanliness rating weight', type=float, default=1)
 search_condition_parser.add_argument('location rating weight', type=float, default=1)
 search_condition_parser.add_argument('communication rating weight', type=float, default=1)
-search_condition_parser.add_argument('order_by', choices=['price', 'total_rating'], default='price')
+search_condition_parser.add_argument('order_by', choices=['price', 'total_rating', 'customized_rating'],
+                                     default='price')
 search_condition_parser.add_argument('sorting', choices=['ascending', 'descending'], default='ascending')
 search_condition_parser.add_argument('page', type=int, default=1)
 
@@ -279,6 +280,10 @@ class PropertyList(Resource):
     @api.expect(search_condition_parser, validate=True)
     @requires_auth
     def get(self):
+        # get user from header
+        token = request.headers.get('AUTH-TOKEN')
+        user = jwt.decode(token, SECRET_KEY, algorithm='HS256')
+
         args = search_condition_parser.parse_args()
         min_price = args.get('min_price')
         max_price = args.get('max_price')
@@ -312,17 +317,27 @@ class PropertyList(Resource):
             property_results = property_results[property_results.price <= int(max_price)]
             property_results = property_results[property_results.price >= int(min_price)]
 
-        # total_rating =
-        # rating[0-100] + weight1 * cleanliness[0-10] + weight2 * location[0-10] + weight3 * communication[0-10]
-        # add rating column:
-        property_results['total_rating'] = property_results['review_scores_rating'] + \
-                                           cleanliness_rating_weight * property_results['review_scores_cleanliness'] + \
-                                           location_rating_weight * property_results['review_scores_location'] + \
-                                           communication_rating_weight * property_results['review_scores_communication']
-
         # sorting
         ascending = (sorting == 'ascending')
-        property_results.sort_values(by=order_by, inplace=True, ascending=ascending)
+        if order_by == 'price':
+            property_results.sort_values(by=order_by, inplace=True, ascending=ascending)
+        else:
+            property_results.sort_values(by='price', inplace=True, ascending=True)
+            if order_by == 'total_rating':
+                pass
+            elif order_by == 'customized_rating':
+                cleanliness_rating_weight, location_rating_weight, communication_rating_weight = User.get_prefs(conn, user['username'])
+            else:
+                return {'message': "Invalid order_by type"}, 400
+            # total_rating =
+            # rating[0-100] + weight1 * cleanliness[0-10] + weight2 * location[0-10] + weight3 * communication[0-10]
+            property_results['total_rating'] = property_results['review_scores_rating'] + \
+                                               cleanliness_rating_weight * property_results[
+                                                   'review_scores_cleanliness'] + \
+                                               location_rating_weight * property_results['review_scores_location'] + \
+                                               communication_rating_weight * property_results[
+                                                   'review_scores_communication']
+            property_results.sort_values(by='total_rating', inplace=True, ascending=ascending)
 
         if property_results.shape[0] == 0:
             return {'message': "No search result"}, 404
