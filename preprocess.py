@@ -100,8 +100,6 @@ if __name__ == '__main__':
     for col in drops:
         calendar_df[col] = calendar_df[col].str.strip('$')
         calendar_df[col] = calendar_df[col].str.replace(',', '')
-    calendar_df["price"] = pd.to_numeric(calendar_df["price"])
-    calendar_df["date"] = pd.to_datetime(calendar_df["date"])
 
     calendar_df.set_index("listing_id", inplace=True)
     write_csv(calendar_df, "calendar.csv")
