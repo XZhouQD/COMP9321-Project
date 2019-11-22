@@ -148,6 +148,11 @@ property_model = api.model('Property', {
     'guests_included': fields.Integer
 })
 
+prefs_model = api.model('Prefs', {
+    'cleanliness': fields.Float,
+    'location': fields.Float,
+    'communication': fields.Float
+})
 
 @api.route('/token')
 class Token(Resource):
@@ -190,6 +195,39 @@ class Register(Resource):
             User(username, email, password).commit(conn)
             return {"message": "Register Successfully"}, 200
 
+@api.route('/user/prefs')
+class Prefernces(Resource):
+    @api.response(201, 'Update User Preferences Success')
+    @api.response(400, 'Validation Error')
+    @api.doc(description="Update preferences on different aspect of ratings")
+    @api.expect(prefs_model, validate=True)
+    @requires_auth
+    def post(self):
+        token = request.headers.get('AUTH-TOKEN')
+        user = jwt.decode(token, SECRET_KEY, algorithm='HS256')
+        prefs = request.json
+        if prefs['cleanliness'] < 0:
+            return {"message": "Invalid cleanliness weight"}, 400
+        if prefs['location'] < 0:
+            return {"message": "Invalid location weight"}, 400
+        if prefs['communication'] < 0:
+            return {"message": "Invalid communication weight"}, 400
+        User.set_prefs(conn, user['username'], cleanliness=prefs['cleanliness'], location=prefs['location'], communication = prefs['communication'])
+        return {"message": "User preferences for {} has been updated".format(user['username'])}, 200
+
+@api.route('/user/')
+class Profile(Resource):
+    @api.response(200, 'Success')
+    @api.response(400, 'Validation Error')
+    @api.response(404, 'User not found')
+    @requires_auth
+    def get(self):
+        token = request.headers.get('AUTH-TOKEN')
+        user = jwt.decode(token, SECRET_KEY, algorithm='HS256')
+        result = User.get_profile(conn, user['username'])
+        if result == {}:
+            api.abort(404, 'Username {} not found'.format(user['username']))
+        return dict(result)
 
 @api.route('/property/')
 class Property(Resource):

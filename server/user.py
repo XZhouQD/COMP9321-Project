@@ -69,6 +69,15 @@ class User():
         row = result.fetchone()
         return row['cleanliness_weight'], row['location_weight'], row['communication_weight']
 
+    @staticmethod
+    def get_profile(conn, username):
+        query = 'select username, email, role from users where username = \'' + username + '\';'
+        result = conn.execute(query)
+        if result.rowcount == 0:
+            return {}
+        row = result.fetchone()
+        return row
+        
     def password_change_request(self, origin_password, new_password):
         if self.password_encrypted == sha256(new_password):
             self.password_encrypted = sha256(new_password)
