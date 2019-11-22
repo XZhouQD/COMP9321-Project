@@ -128,7 +128,6 @@ search_condition_parser.add_argument('sorting', choices=['ascending', 'descendin
 search_condition_parser.add_argument('page', type=int, default=1)
 
 prediction_parser = reqparse.RequestParser()
-prediction_parser.add_argument('id', type=int)
 prediction_parser.add_argument('date', type=str)
 
 # =================== Models ====================
@@ -287,7 +286,7 @@ class PropertyWithID(Resource):
 class estimateReturnWithID(Resource):
     @api.response(200, 'Successful')
     @api.response(404, 'Property was not found')
-    @api.doc('Get estimated price for property by estimating similar properties in the neighbourhood')
+    @api.doc(description='Get estimated price for property by estimating similar properties in the neighbourhood')
     def get(self, id):
         count_api('/Property/return', conn)
         if id not in properties.index:
@@ -403,18 +402,19 @@ class PriceList(Resource):
 
 @api.route('/prediction/<int:id>')
 @api.param('id', 'The property identifier')
-@api.param('date', 'The prediction date, Year-Month-Date, eg: 2019-12-12')
+#@api.param('date', 'The prediction date, Year-Month-Date, eg: 2019-12-12')
 class Prediction(Resource):
     @api.response(200, 'Successful')
     @api.response(401, 'Unauthorized')
     @api.response(400, 'Bad Request')
     @api.doc(description="Prediction for the property price in specific date.")
+    @api.expect(prediction_parser, validate=True)
     @requires_auth
-    def get(self):
+    def get(self, id):
         args = prediction_parser.parse_args()
-        id = args.get('id')
+        property_id = id
         date = args.get('date')
-        predicted_price = predict(id, date)
+        predicted_price = predict(property_id, date)
         if predicted_price is None:
             return {"The historical data is not enough for prediction"}, 401
 
