@@ -47,12 +47,12 @@ api = Api(app, authorizations={
 
 # ============ Some Global variable ==============
 property_type_list = ['All', 'Aparthotel', 'Apartment', 'Barn', 'Bed and breakfast',
-                 'Boat', 'Boutique hotel', 'Bungalow', 'Cabin', 'Camper/rv',
-                 'Campsite', 'Casa particular(cuba)', 'Castle', 'Cave', 'Chalet',
-                 'Condominium', 'Cottage', 'Dome house', 'Earth house', 'Farm stay',
-                 'Guest suite', 'Guesthouse', 'Heritage hotel(India)', 'Hostel',
-                 'Hotel', 'House', 'Hut', 'Island', 'Loft', 'Nature lodge',
-                 'Other', 'Resort', 'Serviced apartment', 'Tent', 'Tiny house', 'Tipi',
+                      'Boat', 'Boutique hotel', 'Bungalow', 'Cabin', 'Camper/rv',
+                      'Campsite', 'Casa particular(cuba)', 'Castle', 'Cave', 'Chalet',
+                      'Condominium', 'Cottage', 'Dome house', 'Earth house', 'Farm stay',
+                      'Guest suite', 'Guesthouse', 'Heritage hotel(India)', 'Hostel',
+                      'Hotel', 'House', 'Hut', 'Island', 'Loft', 'Nature lodge',
+                      'Other', 'Resort', 'Serviced apartment', 'Tent', 'Tiny house', 'Tipi',
                       'Townhouse', 'Train', 'Treehouse', 'Villa', 'Yurt']
 
 room_type_list = ['All', 'Private room', 'Entire home/apt', 'Shared room']
@@ -79,7 +79,6 @@ class AuthenticationToken:
         if time() - info['creation_time'] > self._expires_in:
             raise SignatureExpired("The Token has been expired; get a new token")
         return info['username']
-
 
 
 SECRET_KEY = "A SECRET KEY; USUALLY A VERY LONG RANDOM STRING"
@@ -124,7 +123,7 @@ search_condition_parser.add_argument('cleanliness rating weight', type=float, de
 search_condition_parser.add_argument('location rating weight', type=float, default=1)
 search_condition_parser.add_argument('communication rating weight', type=float, default=1)
 search_condition_parser.add_argument('order_by', choices=['price', 'total_rating'], default='price')
-search_condition_parser.add_argument('sorting', choices=['ascending', 'descending'])
+search_condition_parser.add_argument('sorting', choices=['ascending', 'descending'], default='ascending')
 search_condition_parser.add_argument('page', type=int, default=1)
 
 # =================== Models ====================
@@ -182,7 +181,7 @@ class Register(Resource):
         if not re.search(regex, email):
             return {"message": "Invalid Email Address."}, 400
         if User.is_username_exists(conn, username):
-            return {"message": "username is existed."}, 400
+            return {"message": "username exists."}, 400
         else:
             User(username, email, password).commit(conn)
             return {"message": "Register Successfully"}, 200
@@ -301,7 +300,7 @@ class PropertyList(Resource):
         if room_type != 'All':
             property_results = property_results[property_results.room_type == room_type]
         if int(accommodates) != 0:
-            property_results = property_results[property_results.amenities == accommodates]
+            property_results = property_results[property_results.accommodates >= accommodates]
         # price_filter
         if min_price > max_price:
             return {'message': "Invalid price range"}, 400
@@ -368,8 +367,9 @@ def count_api(api, conn):
 
 
 def count_api(api, conn):
-	query = 'INSERT INTO api_calls (api, calls) VALUES (\'' + api + '\', 1) ON CONFLICT (api) DO UPDATE SET calls = api_calls.calls + 1;'
-	conn.execute(query)
+    query = 'INSERT INTO api_calls (api, calls) VALUES (\'' + api + '\', 1) ON CONFLICT (api) DO UPDATE SET calls = api_calls.calls + 1;'
+    conn.execute(query)
+
 
 if __name__ == '__main__':
     engine = create_engine('postgresql://cs9321:comp9321@ali.x-zhou.com:5432/comp9321')
@@ -383,6 +383,7 @@ if __name__ == '__main__':
     properties['review_scores_cleanliness'] = pd.to_numeric(properties['review_scores_cleanliness'])
     properties['review_scores_communication'] = pd.to_numeric(properties['review_scores_communication'])
     properties['review_scores_location'] = pd.to_numeric(properties['review_scores_location'])
+    properties['accommodates'] = pd.to_numeric(properties['accommodates'])
 
     properties.set_index('id', inplace=True)
 
