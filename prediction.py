@@ -22,6 +22,8 @@ def get_listings(df):
 
 def predict(suburb, date):
     df = pd.read_csv('calendar.csv')
+    df["price"] = pd.to_numeric(df["price"])
+    df["date"] = pd.to_datetime(df["date"])
 
     a = get_listings(df)
     # print(a)
@@ -31,9 +33,12 @@ def predict(suburb, date):
     listing = listing[::-1]
     listing.reset_index(inplace=True)
     start = listing['date'][0]
-    starts = datetime.datetime.strptime(start, '%Y-%m-%d')
-    difference = (datetime.datetime.strptime(date, '%Y-%m-%d') - starts).days
+    # print(start)
+    # starts = datetime.datetime.strptime(start, '%Y-%m-%d')
+    starts = start.strftime('%Y-%m-%d')
+    starts = datetime.datetime.strptime(starts, '%Y-%m-%d')
 
+    difference = (datetime.datetime.strptime(date, '%Y-%m-%d') - starts).days
     # print(listing)
 
     vertical = listing.index.tolist()
@@ -46,7 +51,7 @@ def predict(suburb, date):
 
     minV = min(vertical)
     maxV = max(vertical)
-    X = np.arange(minV, maxV).reshape([-1, 1])
+    # X = np.arange(minV, maxV).reshape([-1, 1])
 
     linear = linear_model.LinearRegression()
     linear.fit(vertical, horizontal)
@@ -62,6 +67,8 @@ def predict(suburb, date):
     # plt.ylabel('Price')
     # plt.title(suburb)
     # plt.show()
+    # print(y)
     return y
+
 
 predict(30592505, '2019-08-01')

@@ -28,6 +28,8 @@ from time import time
 from itsdangerous import JSONWebSignatureSerializer, BadSignature, SignatureExpired
 import re
 
+from prediction import *
+
 from user import User
 
 app = Flask(__name__)
@@ -373,7 +375,7 @@ class PriceList(Resource):
             date_price_list.append((calendar_results.iloc[row_num]['date'], calendar_results.iloc[row_num]['price']))
         return dict(date_price_list)
 
-@api.route('/prediction')
+@api.route('/prediction/<int:id>')
 @api.param('id', 'The property identifier')
 @api.param('date', 'The prediction date, Year-Month-Date, eg: 2019-12-12')
 class Prediction(Resource):
