@@ -54,6 +54,20 @@ class User():
         if result.rowcount == 0:
             return False
         return True
+        
+    @staticmethod
+    def set_prefs(conn, username, cleanliness=1, location=1, communication=1):
+        query = 'INSERT INTO user_prefs(username, cleanliness_weight, location_weight, communication_weight) VALUES (\'' + username + '\', '+str(cleanliness) + ', ' + str(location) + ', ' + str(communication) + ') ON CONFLICT (username) DO UPDATE SET cleanliness_weight = ' + str(cleanliness) + ', location_weight = ' + str(location) + ', communication_weight = ' + str(communication) + ';'
+        conn.execute(query)
+        
+    @staticmethod
+    def get_prefs(conn, username):
+        query = 'select * from user_prefs where username = \'' + username + '\';'
+        result = conn.execute(query)
+        if result.rowcount == 0:
+            return 1, 1, 1
+        row = result.fetchone()
+        return row['cleanliness_weight'], row['location_weight'], row['communication_weight']
 
     def password_change_request(self, origin_password, new_password):
         if self.password_encrypted == sha256(new_password):
