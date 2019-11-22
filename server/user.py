@@ -82,7 +82,7 @@ class User():
 
     @staticmethod
     def get_profile(conn, username):
-        query = 'select username, email, role from users where username = \'' + username + '\';'
+        query = 'select * from (select username, email, role from users where username = \'' + username + '\' )as A natural join (select * from user_prefs where username = \'' + username + '\') as B;'
         result = conn.execute(query)
         if result.rowcount == 0:
             return {}

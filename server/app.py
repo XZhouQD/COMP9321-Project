@@ -206,6 +206,7 @@ class Register(Resource):
         if User.is_username_exists(conn, username):
             return {"message": "username exists."}, 400
         User(username, email, password).commit(conn)
+        User.set_prefs(conn, username)
         return {"message": "Register Successfully"}, 200
 
 @api.route('/user/prefs')
@@ -280,7 +281,7 @@ class Profile(Resource):
     @api.response(200, 'Success')
     @api.response(400, 'Validation Error')
     @api.response(404, 'User not found')
-	@api.doc(description="Get current logged in user profile")
+    @api.doc(description="Get current logged in user profile")
     @requires_auth
     def get(self):
         token = request.headers.get('AUTH-TOKEN')
