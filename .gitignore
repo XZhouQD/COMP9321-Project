@@ -1,5 +1,9 @@
 # Our own data
 syd_airbnb_open_data/
+*.csv
+
+# idea config files
+.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
