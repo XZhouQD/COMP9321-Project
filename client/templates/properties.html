@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <h1 style="text-align: left; margin-left: 10px;"><a href="{{url_for('home')}}">Bnbria</a></h1>
+    <h4 style="text-align: left; margin-left: 10px;"><a href="{{url_for('dashboard')}}">Back to dashboard</a></h4>
+    <div style="border-bottom: 1px lightgrey solid; width: 100%; height: 1px"></div>
+</head>
+<body style="text-align: left; text-indent: 25px; margin-left: 30px">
+{% for property_details in property_list %}
+<div>
+    <h2 style="margin-top:30px">{{ property_details['name'] }}</h2>
+    <h3 style="margin-top:5px; color:red"><b>Price: </b>$ {{ property_details['price'] }}</h3>
+    <div style="margin-top:20px"><b>Host name: </b>{{ property_details['host_name'] }}</div>
+    <div style="margin-top:5px"><b>City: </b>{{ property_details['city'] }}</div>
+    <div style="margin-top:5px"><b>Property type: </b>{{ property_details['property_type'] }}</div>
+    <div style="margin-top:5px"><b>Room type: </b>{{ property_details['room_type'] }}</div>
+    <div style="margin-top:5px"><b>Accommodates: </b>{{ property_details['accommodates'] }}</div>
+    <div style="margin-top:5px">
+        <b>Bathrooms: </b>{{ property_details['bathrooms'] }}
+        <b style="margin-left: 10px">Bedrooms: </b>{{ property_details['bedrooms'] }}
+        <b style="margin-left: 10px">Beds: </b>{{ property_details['beds'] }}
+    </div>
+    <div style="margin-top:5px">
+        <b>Rating:</b> <a>Overall - </a>{{ property_details['review_scores_rating'] }}
+        <a style="margin-left: 10px">Cleanliness </a>{{ property_details['review_scores_cleanliness'] }}
+        <a style="margin-left: 10px">Communication: </a>{{ property_details['review_scores_communication'] }}
+        <a style="margin-left: 10px">Location: </a>{{ property_details['review_scores_location'] }}
+    </div>
+    <div style="border-bottom: 1px lightgrey solid; width: 100%; height: 1px; margin-top:30px"></div>
+</div>
+{% endfor %}
+
+
+
+</body>
+</html>

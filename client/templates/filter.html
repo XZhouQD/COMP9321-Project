@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <h1 style="text-align: left; margin-left: 30px;t"><a href="{{url_for('home')}}">Bnbria</a></h1>
+    <h4 style="text-align: left; margin-left: 30px;"><a href="{{url_for('dashboard')}}">Back to dashboard</a></h4>
+    <div style="border-bottom: 1px lightgrey solid; width: 100%; height: 1px"></div>
+</head>
+<body style="text-align: center">
+    <form method="post" style="margin-top: 20px">
+        <div style="font-size: 14px; color: red; margin-bottom: 20px; text-align: right">{{ message }}</div>
+        <div style="width: 20%; float: right; text-align: left">
+            <h2>Filter:</h2>
+            <div style="margin-top: 0px"><b>Min_price:</b> </div>
+            <div> <input type="text" name="min_price" class="text-bar" value="0"></div>
+            <div style="margin-top: 0px"><b>Max_price:</b> </div>
+              <div>  <input type="text" name="max_price" class="text-bar" value="0"></div>
+            <div style="margin-top: 0px"><b>Suburb:</b> </div>
+              <div>  <input type="text" name="suburb" class="text-bar" value="Sydney"></div>
+            <div style="margin-top: 0px"><b>Property_type:</b> </div>
+              <div>  <input type="text" name="property_type" class="text-bar" value="Apartment"></div>
+            <div style="margin-top: 0px"><b>Room_type:</b> </div>
+              <div>  <input type="text" name="room_type" class="text-bar" value="Private room"></div>
+            <div style="margin-top: 0px"><b>Accommodates:</b> </div>
+              <div>  <input type="text" name="accommodates" class="text-bar" value="0"></div>
+            <div style="margin-top: 0px"><b>Cleanliness rating weight:</b> </div>
+              <div>  <input type="text" name="cleanliness rating weight" class="text-bar" value="1"></div>
+            <div style="margin-top: 0px"><b>Location rating weight:</b> </div>
+               <div> <input type="text" name="location rating weight" class="text-bar" value="1"></div>
+            <div style="margin-top: 0px"><b>Communication rating weight:</b> </div>
+               <div> <input type="text" name="communication rating weight" class="text-bar" value="1"></div>
+            <div style="margin-top: 0px"><b>Order by:</b> </div>
+               <div> <input type="text" name="order_by" class="text-bar" value="price"></div>
+            <div style="margin-top: 0px"><b>Sorting:</b> </div>
+               <div> <input type="text" name="sorting" class="text-bar" value="ascending"></div>
+            <div style="margin-top: 0px"><b>Page: (total:{{ pages }})</b> </div>
+               <div> <input type="text" name="page" class="text-bar" value="{{ page }}"></div>
+            <button class="login-button">Get list</button>
+        </div>
+        <div style="float: left; width: 70%; text-align: left; margin-left: 5%">
+            {% for property_details in property_list %}
+            <div>
+                <h2 style="margin-top:30px">{{ property_details['name'] }}</h2>
+                <h3 style="margin-top:5px; color:red"><b>Price: </b>$ {{ property_details['price'] }}</h3>
+                <div style="margin-top:20px"><b>Host name: </b>{{ property_details['host_name'] }}</div>
+                <div style="margin-top:5px"><b>City: </b>{{ property_details['city'] }}</div>
+                <div style="margin-top:5px"><b>Property type: </b>{{ property_details['property_type'] }}</div>
+                <div style="margin-top:5px"><b>Room type: </b>{{ property_details['room_type'] }}</div>
+                <div style="margin-top:5px"><b>Accommodates: </b>{{ property_details['accommodates'] }}</div>
+                <div style="margin-top:5px">
+                    <b>Bathrooms: </b>{{ property_details['bathrooms'] }}
+                    <b style="margin-left: 10px">Bedrooms: </b>{{ property_details['bedrooms'] }}
+                    <b style="margin-left: 10px">Beds: </b>{{ property_details['beds'] }}
+                </div>
+                <div style="margin-top:5px">
+                    <b>Rating:</b> <a>Overall - </a>{{ property_details['review_scores_rating'] }}
+                    <a style="margin-left: 10px">Cleanliness </a>{{ property_details['review_scores_cleanliness'] }}
+                    <a style="margin-left: 10px">Communication: </a>{{ property_details['review_scores_communication'] }}
+                    <a style="margin-left: 10px">Location: </a>{{ property_details['review_scores_location'] }}
+                </div>
+                <div style="border-bottom: 1px lightgrey solid; width: 100%; height: 1px; margin-top:30px"></div>
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+</body>
+</html>
+
+<style>
+    .text-bar{margin-bottom: 20px; height:18px; width:180px; font-size: 14px; padding: 3px}
+    .login-button{margin-bottom: 20px; font-size:14px; width: 100px; height: 30px; background-color: orangered; color: white; border: none; cursor: pointer;}
+</style>

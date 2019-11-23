@@ -169,6 +169,39 @@ def delete_property():
         return redirect(url_for('page_not_found'))
 
 
+@app.route('/property_filter', methods=['GET', 'POST'])
+def property_filter():
+    if is_login:
+        api_url = server_url + 'property_list'
+        header = {'AUTH-TOKEN': token}
+        if request.method == 'POST':
+            page = request.form['page']
+            params = {
+                'min_price': int(request.form['min_price']),
+                'max_price': int(request.form['max_price']),
+                'suburb': request.form['suburb'],
+                'property_type': request.form['property_type'],
+                'room_type': request.form['room_type'],
+                'accommodates': int(request.form['accommodates']),
+                'cleanliness rating weight': int(request.form['cleanliness rating weight']),
+                'location rating weight': int(request.form['location rating weight']),
+                'communication rating weight': int(request.form['communication rating weight']),
+                'order_by': request.form['order_by'],
+                'sorting': request.form['sorting'],
+                'page': request.form['page']
+            }
+            resp = requests.get(api_url, headers=header, params=params)
+            if resp.ok:
+                return render_template('filter.html', property_list=resp.json()['list'], pages=resp.json()['total'], page=page)
+            else:
+                return render_template('filter.html', message=resp.json()['message'])
+        else:
+            resp = requests.get(api_url, headers=header)
+            return render_template('filter.html', property_list=resp.json()['list'], pages=resp.json()['total'])
+    else:
+        return redirect(url_for('page_not_found'))
+
+
 
 @app.route('/logout', methods=['GET'])
 def logout():
