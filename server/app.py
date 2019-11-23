@@ -295,6 +295,7 @@ class Profile(Resource):
 class Property(Resource):
     @api.response(200, 'Property Created Successfully')
     @api.response(400, 'Validation Error')
+    @api.response(401, 'Auth Failed')
     @api.doc(description="Add a new property based on different aspects")
     @api.expect(property_model, validate=True)
     @requires_auth
@@ -464,6 +465,7 @@ class PropertyList(Resource):
         # get at most 10 results by page
         if property_results.shape[0] < 10 * (page - 1):
             return {'message': "Invalid page {} request".format(page)}, 404
+        total_pages = round(property_results.shape[0]/10+0.4, 0)
         page_end = min(property_results.shape[0] + 1, 10 * page)
         property_results = property_results[10 * (page - 1):page_end]
 
@@ -474,7 +476,7 @@ class PropertyList(Resource):
         for idx in ds:
             property = ds[idx]
             ret.append(property)
-        return ret
+        return {"list":ret, "current":page, "total":total_pages}
 
 
 @api.route('/property/<int:id>/date_price')
