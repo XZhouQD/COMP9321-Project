@@ -124,6 +124,52 @@ def get_property_details(property_id):
         return redirect(url_for('page_not_found'))
 
 
+@app.route('/add_property/', methods=['GET', 'POST'])
+def add_property():
+    if is_login:
+        if request.method == 'POST':
+            api_url = server_url + 'property/'
+            header = {'AUTH-TOKEN': token}
+            params = {
+                "name": request.form['name'],
+                "host_neighbourhood": request.form['host_neighbourhood'],
+                "city": request.form['city'],
+                "property_type": request.form['property_type'],
+                "room_type": request.form['room_type'],
+                "accommodates": int(request.form['accommodates']),
+                "bathrooms": int(request.form['bathrooms']),
+                "bedrooms": int(request.form['bedrooms']),
+                "beds": int(request.form['beds']),
+                "amenities": "string",
+                "price": float(request.form['price']),
+                "security_deposit": float(request.form['security_deposit']),
+                "cleaning_fee": float(request.form['cleaning_fee']),
+                "guests_included": int(request.form['guests_included'])
+            }
+            resp = requests.post(api_url, json=params, headers=header)
+            return render_template('add_property.html', message=resp.json()['message'])
+        else:
+            return render_template('add_property.html')
+    else:
+        return redirect(url_for('page_not_found'))
+
+
+@app.route('/delete_property', methods=['GET', 'POST'])
+def delete_property():
+    if is_login:
+        if request.method == 'POST':
+            to_delete = request.form['to_delete']
+            api_url = server_url + 'property/' + to_delete
+            header = {'AUTH-TOKEN': token}
+            resp = requests.delete(api_url, headers=header)
+            return render_template('delete_property.html', message=resp.json()['message'])
+        else:
+            return render_template('delete_property.html')
+    else:
+        return redirect(url_for('page_not_found'))
+
+
+
 @app.route('/logout', methods=['GET'])
 def logout():
     global token

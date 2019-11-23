@@ -6,8 +6,8 @@
 </head>
 <body style="text-align: left; padding-left: 30px">
 <div style="margin-top: 40px"><a href="{{ url_for('get_property') }}">Get property</a> - Get a property info</div>
-<div>New property - Add a new property</div>
-<div>Delete property - delete a property</div>
+<div><a href="{{ url_for('add_property') }}">New property</a> - Add a new property</div>
+<div><a href="{{ url_for('delete_property') }}">Delete property</a> - delete a property</div>
 <div style="margin-top: 40px">Property filter - Get a property list by many different arguments</div>
 <div>Get date price - Get properties datetime and price by ID</div>
 <div style="margin-top: 40px">Price trend - Prediction for the property price in specific date.</div>
