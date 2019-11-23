@@ -43,7 +43,7 @@ api = Api(app, authorizations={
           security='API-KEY',
           default="Properties",  # Default namespace
           title="Property Dataset",  # Documentation Title
-          description="TODO: edit description")  # Documentation Description
+          description="Property hosting system along with price prediction, property return estimate")  # Documentation Description
 
 # ============ Some Global variable ==============
 property_type_list = ['All', 'Aparthotel', 'Apartment', 'Barn', 'Bed and breakfast',
@@ -169,7 +169,8 @@ email_change_model = api.model('Email_Change', {
 @api.route('/token')
 class Token(Resource):
     @api.response(200, 'Successful')
-    @api.doc(description="Generates a authentication token with new username and password")
+    @api.response(401, 'Auth failed')
+    @api.doc(description="Generates an authentication token with new username and password")
     @api.expect(credential_parser, validate=True)
     def get(self):
         args = credential_parser.parse_args()
@@ -211,7 +212,7 @@ class Register(Resource):
 
 @api.route('/user/prefs')
 class Prefernces(Resource):
-    @api.response(201, 'Update User Preferences Success')
+    @api.response(200, 'Update User Preferences Success')
     @api.response(400, 'Validation Error')
     @api.doc(description="Update preferences on different aspect of ratings")
     @api.expect(prefs_model, validate=True)
@@ -231,7 +232,7 @@ class Prefernces(Resource):
 
 @api.route('/user/change_password')
 class ChangePassword(Resource):
-    @api.response(201, 'Update Password Success')
+    @api.response(200, 'Update Password Success')
     @api.response(400, 'Password Update Error')
     @api.doc(description="Change existing password of user")
     @api.expect(password_change_model, validate=True)
@@ -255,7 +256,7 @@ class ChangePassword(Resource):
 
 @api.route('/user/change_email')
 class ChangeEmail(Resource):
-    @api.response(201, 'Update Email Success')
+    @api.response(200, 'Update Email Success')
     @api.response(400, 'Password Update Error')
     @api.doc(description="Change existing email of user")
     @api.expect(email_change_model, validate=True)
@@ -274,12 +275,11 @@ class ChangeEmail(Resource):
             return {"message": "User does not exist."}, 400
         current_user.email_change(conn, new_email)
         return {"message": "Email has been updated."}, 200
-        
-        
+
 @api.route('/user/')
 class Profile(Resource):
     @api.response(200, 'Success')
-    @api.response(400, 'Validation Error')
+    @api.response(401, 'Auth Failed')
     @api.response(404, 'User not found')
     @api.doc(description="Get current logged-in user profile")
     @requires_auth
@@ -293,7 +293,7 @@ class Profile(Resource):
 
 @api.route('/property/')
 class Property(Resource):
-    @api.response(201, 'Property Created Successfully')
+    @api.response(200, 'Property Created Successfully')
     @api.response(400, 'Validation Error')
     @api.doc(description="Add a new property based on different aspects")
     @api.expect(property_model, validate=True)
@@ -358,20 +358,12 @@ class PropertyWithID(Resource):
         count_api('/Property', conn)
         if id not in properties.index:
             api.abort(404, "Property {} does not exist".format(id))
-        #property = properties.loc[id]
         json_str = properties[properties.index == id].to_json(orient='index')
         ds = json.loads(json_str)
-        #ret = []
-        #for idx in ds:
-        #    property = ds[idx]
-        #    ret.append(property)
         return ds
-        #json_str = property.to_json()
-        #ds = json.loads(json_str)
-        #return json.dumps(ds)
 
     @api.response(200, 'Successful')
-    @api.response(400, 'Validation Error')
+    @api.response(401, 'Auth Failed')
     @api.response(404, 'Property was not found')
     @api.doc(description="Delete properties by ID")
     @requires_auth
@@ -381,7 +373,7 @@ class PropertyWithID(Resource):
         properties.drop(id, inplace=True)
         return {"message": "Property {} is removed.".format(id)}, 200
 
-@api.route('/property/return/<int:id>')
+@api.route('/property/<int:id>/price_estimate')
 @api.param('id', 'The Property identifier')
 class estimateReturnWithID(Resource):
     @api.response(200, 'Successful')
@@ -401,9 +393,9 @@ class estimateReturnWithID(Resource):
 
 @api.route('/property_list/')
 class PropertyList(Resource):
-    @api.response(201, 'Property Created Successfully')
+    @api.response(200, 'Success')
     @api.response(400, 'Validation Error')
-    @api.doc(description="Get a property list by many different aspects")
+    @api.doc(description="Get a property list filtered by many different aspects")
     @api.expect(search_condition_parser, validate=True)
     @requires_auth
     def get(self):
@@ -485,12 +477,12 @@ class PropertyList(Resource):
         return ret
 
 
-@api.route('/date_price/<int:id>')
+@api.route('/property/<int:id>/date_price')
 @api.param('id', 'The Property identifier')
 class PriceList(Resource):
     @api.response(200, 'Successful')
     @api.response(404, 'Property was not found')
-    @api.response(400, 'Validation Error')
+    @api.response(401, 'Auth Failed')
     @api.doc(description="Get properties datetime and price by ID")
     @requires_auth
     def get(self, id):
@@ -500,12 +492,12 @@ class PriceList(Resource):
             date_price_list.append((calendar_results.iloc[row_num]['date'], calendar_results.iloc[row_num]['price']))
         return dict(date_price_list)
 
-@api.route('/prediction/<int:id>')
+@api.route('/property/<int:id>/prediction')
 @api.param('id', 'The property identifier')
 #@api.param('date', 'The prediction date, Year-Month-Date, eg: 2019-12-12')
 class Prediction(Resource):
     @api.response(200, 'Successful')
-    @api.response(401, 'Unauthorized')
+    @api.response(401, 'Auth Failed')
     @api.response(400, 'Bad Request')
     @api.doc(description="Predict price of property in specific date")
     @api.expect(prediction_parser, validate=True)
