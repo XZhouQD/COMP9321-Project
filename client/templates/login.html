@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <h1 style="text-align: center"><a href="{{url_for('home')}}">Bnbria</a></h1>
+    <div style="border-bottom: 1px lightgrey solid; width: 100%; height: 1px"></div>
+</head>
+<body style="text-align: center">
+    <form method="post" style="margin-top: 20px">
+        <h2>Login</h2>
+        <div><b>Username:</b> <input type="text" name="username" class="text-bar"></div>
+        <div><b>Password:</b> <input type="password" name="password" class="text-bar" style="margin-left: 3px;"></div>
+        <button class="login-button">Login</button>
+        {% if invalidPassWordError %}
+            <div style="font-size: 14px; color: red;">Invalid username or password, please try again.</div>
+        {% endif %}
+        {% if notFilledInError %}
+            <div style="font-size: 14px; color: red;">Please fill in all blanks.</div>
+        {% endif %}
+        {% if registerSuccessfully %}
+            <script> window.alert('Register Successfully, Please login') </script>
+        {% endif %}
+    </form>
+</body>
+</html>
+
+<style>
+    .text-bar{margin-bottom: 20px; height:18px; width:180px; font-size: 14px; padding: 3px}
+    .login-button{margin-bottom: 20px; font-size:14px; width: 100px; height: 30px; background-color: orangered; color: white; border: none; cursor: pointer;}
+</style>
