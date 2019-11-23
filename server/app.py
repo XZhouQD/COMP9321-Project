@@ -169,7 +169,7 @@ email_change_model = api.model('Email_Change', {
 @api.route('/token')
 class Token(Resource):
     @api.response(200, 'Successful')
-    @api.doc(description="Generates a authentication token")
+    @api.doc(description="Generates a authentication token with new username and password")
     @api.expect(credential_parser, validate=True)
     def get(self):
         args = credential_parser.parse_args()
@@ -190,7 +190,7 @@ class Token(Resource):
 class Register(Resource):
     @api.response(200, 'Successful')
     @api.response(400, 'Registration Failed')
-    @api.doc(description="Generates a new user")
+    @api.doc(description="Generates a new user with new username, email and password")
     @api.expect(register_model, validate=True)
     def post(self):
         register_info = request.json
@@ -281,7 +281,7 @@ class Profile(Resource):
     @api.response(200, 'Success')
     @api.response(400, 'Validation Error')
     @api.response(404, 'User not found')
-    @api.doc(description="Get current logged in user profile")
+    @api.doc(description="Get current logged-in user profile")
     @requires_auth
     def get(self):
         token = request.headers.get('AUTH-TOKEN')
@@ -295,7 +295,7 @@ class Profile(Resource):
 class Property(Resource):
     @api.response(201, 'Property Created Successfully')
     @api.response(400, 'Validation Error')
-    @api.doc(description="Add a new book")
+    @api.doc(description="Add a new property based on different aspects")
     @api.expect(property_model, validate=True)
     @requires_auth
     def post(self):
@@ -403,7 +403,7 @@ class estimateReturnWithID(Resource):
 class PropertyList(Resource):
     @api.response(201, 'Property Created Successfully')
     @api.response(400, 'Validation Error')
-    @api.doc(description="Get a property list by many different")
+    @api.doc(description="Get a property list by many different aspects")
     @api.expect(search_condition_parser, validate=True)
     @requires_auth
     def get(self):
@@ -507,7 +507,7 @@ class Prediction(Resource):
     @api.response(200, 'Successful')
     @api.response(401, 'Unauthorized')
     @api.response(400, 'Bad Request')
-    @api.doc(description="Prediction for the property price in specific date.")
+    @api.doc(description="Predict price of property in specific date")
     @api.expect(prediction_parser, validate=True)
     @requires_auth
     def get(self, id):
