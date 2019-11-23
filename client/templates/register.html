@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <h1 style="text-align: center">Bnbria</h1>
+    <h1 style="text-align: center"><a href="{{url_for('home')}}">Bnbria</a></h1>
     <div style="border-bottom: 1px lightgrey solid; width: 100%; height: 1px"></div>
 </head>
 <body style="text-align: center">
     <form method="post" style="margin-top: 20px">
         <h2>Register</h2>
-        <div><b>Username:</b> <input type="text" name="username" class="text-bar"></div>
-        <div><b>Password:</b> <input type="password" name="password" class="text-bar" style="margin-left: 3px;"></div>
-        <div><b>Confirm Password:</b> <input type="password" name="confirm_password" class="text-bar" style="margin-right: 60px;"></div>
-        <div><b>Email:</b> <input type="text" name="email" class="text-bar" style="margin-left: 27px"></div>
-        <button class="login-button">Register</button>
-        {% if notFilledInError %}
-            <div style="font-size: 14px; color: red;">Please fill in all blanks.</div>
-        {% endif %}
-        {% if errorMsg %}
-            <div style="font-size: 14px; color: red;">{{ errorMsg }}</div>
+        {% if is_login %}
+            <div>You are already logged in.</div>
+        {% else %}
+            <div><b>Username:</b> <input type="text" name="username" class="text-bar"></div>
+            <div><b>Password:</b> <input type="password" name="password" class="text-bar" style="margin-left: 3px;"></div>
+            <div><b>Confirm Password:</b> <input type="password" name="confirm_password" class="text-bar" style="margin-right: 60px;"></div>
+            <div><b>Email:</b> <input type="text" name="email" class="text-bar" style="margin-left: 27px"></div>
+            <button class="login-button">Register</button>
+            {% if notFilledInError %}
+                <div style="font-size: 14px; color: red;">Please fill in all blanks.</div>
+            {% endif %}
+            {% if errorMsg %}
+                <div style="font-size: 14px; color: red;">{{ errorMsg }}</div>
+            {% endif %}
         {% endif %}
     </form>
 </body>

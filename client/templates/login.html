@@ -7,17 +7,21 @@
 <body style="text-align: center">
     <form method="post" style="margin-top: 20px">
         <h2>Login</h2>
-        <div><b>Username:</b> <input type="text" name="username" class="text-bar"></div>
-        <div><b>Password:</b> <input type="password" name="password" class="text-bar" style="margin-left: 3px;"></div>
-        <button class="login-button">Login</button>
-        {% if invalidPassWordError %}
-            <div style="font-size: 14px; color: red;">Invalid username or password, please try again.</div>
-        {% endif %}
-        {% if notFilledInError %}
-            <div style="font-size: 14px; color: red;">Please fill in all blanks.</div>
-        {% endif %}
-        {% if registerSuccessfully %}
-            <script> window.alert('Register Successfully, Please login') </script>
+        {% if is_login %}
+            <div>You are already logged in.</div>
+        {% else %}
+            <div><b>Username:</b> <input type="text" name="username" class="text-bar"></div>
+            <div><b>Password:</b> <input type="password" name="password" class="text-bar" style="margin-left: 3px;"></div>
+            <button class="login-button">Login</button>
+            {% if invalidPassWordError %}
+                <div style="font-size: 14px; color: red;">Invalid username or password, please try again.</div>
+            {% endif %}
+            {% if notFilledInError %}
+                <div style="font-size: 14px; color: red;">Please fill in all blanks.</div>
+            {% endif %}
+            {% if registerSuccessfully %}
+                <script> window.alert('Register Successfully, Please login') </script>
+            {% endif %}
         {% endif %}
     </form>
 </body>

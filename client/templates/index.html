@@ -5,10 +5,14 @@
     <div style="border-bottom: 1px lightgrey solid; width: 100%; height: 1px"></div>
 </head>
 <body style="text-align: center">
-    <div style="margin-top: 20px">
-        <a class="normal_link" href="{{url_for('login')}}">Login</a>
-        <a class="normal_link" href="{{url_for('register')}}">Register</a>
-    </div>
+        <div style="margin-top: 20px">
+            {% if is_login %}
+                <a class="normal_link" href="{{url_for('dashboard')}}">Dashboard</a>
+            {% else %}
+                <a class="normal_link" href="{{url_for('login')}}">Login</a>
+                <a class="normal_link" href="{{url_for('register')}}">Register</a>
+            {% endif %}
+        </div>
 </body>
 </html>
 

@@ -7,21 +7,24 @@ app.config['SECRET_KEY'] = 'secret_key'
 token = None
 server_url = 'http://127.0.0.1:5000/'
 
+is_login = False
+
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    return render_template('index.html')
+    return render_template('index.html', is_login=is_login)
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     global token
+    global is_login
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         params = {'username': username, 'password': password}
         if username == '' or password == '':
-            return render_template('login.html', notFilledInError=True)
+            return render_template('login.html', notFilledInError=True, is_login=is_login)
         api_url = server_url + 'token'
         try:
             response = requests.get(api_url, params=params)
@@ -29,12 +32,14 @@ def login():
             return Response("<script> window.alert('No server connection') </script>")
         if response.ok:
             token = response.json()['token']
+            is_login = True
+            print(is_login)
             # redirect to the next page
             return redirect(url_for('dashboard'))
         else:
-            return render_template('login.html', invalidPassWordError=True)
+            return render_template('login.html', invalidPassWordError=True, is_login=is_login)
     else:
-        return render_template('login.html', invalidPassWordError=False)
+        return render_template('login.html', invalidPassWordError=False, is_login=is_login)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -53,35 +58,70 @@ def register():
         except requests.exceptions.ConnectionError:
             return Response("<script> window.alert('No connection between the server!') </script>")
         if resp.status_code == 200:
-            return render_template('login.html', registerSuccessfully=True)
+            return render_template('login.html', registerSuccessfully=True, is_login=is_login)
         elif resp.status_code == 400:
-            return render_template ('register.html', errorMsg=resp.json()['message'])
+            return render_template ('register.html', errorMsg=resp.json()['message'], is_login=is_login)
         else:
-            return redirect(url_for('register'))
+            return render_template ('register.html', is_login=is_login)
     else:
-        return render_template ('register.html')
+        return render_template ('register.html', is_login=is_login)
 
 
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
-    # get user info
-    api_url = server_url + 'user'
-    # put header
-    header = {'AUTH-TOKEN': token}
-    resp = requests.get(api_url, headers=header)
-    username = resp.json()['username']
-    email = resp.json()['email']
-    role = resp.json()['role']
-    cleanliness_weight = resp.json()['cleanliness_weight']
-    location_weight = resp.json()['location_weight']
-    communication_weight = resp.json()['communication_weight']
-    return render_template('dashboard.html',
-                           username=username,
-                           email=email,
-                           role=role,
-                           cleanliness_weight=cleanliness_weight,
-                           location_weight=location_weight,
-                           communication_weight=communication_weight)
+    if is_login:
+        # get user info
+        api_url = server_url + 'user'
+        # put header
+        header = {'AUTH-TOKEN': token}
+        resp = requests.get(api_url, headers=header)
+        if resp.ok:
+            username = resp.json()['username']
+            email = resp.json()['email']
+            role = resp.json()['role']
+            cleanliness_weight = resp.json()['cleanliness_weight']
+            location_weight = resp.json()['location_weight']
+            communication_weight = resp.json()['communication_weight']
+            return render_template('dashboard.html',
+                                   username=username,
+                                   email=email,
+                                   role=role,
+                                   cleanliness_weight=cleanliness_weight,
+                                   location_weight=location_weight,
+                                   communication_weight=communication_weight)
+        else:
+            redirect(url_for('page_not_found'))
+    else:
+        return redirect(url_for('page_not_found'))
+
+
+@app.route('/404', methods=['GET'])
+def page_not_found():
+    return render_template('404.html')
+
+
+@app.route('/property/', methods=['GET', 'POST'])
+def get_property():
+    if request.method == 'POST':
+        property_id = request.form['property_id']
+        return redirect(url_for('get_property_details', property_id=property_id))
+    else:
+        return render_template('property_selection.html')
+
+
+@app.route('/property/<string:property_id>', methods=['GET'])
+def get_property_details(property_id):
+    if is_login:
+        api_url = server_url + 'property/' + property_id
+        header = {'AUTH-TOKEN': token}
+        resp = requests.get(api_url, headers=header)
+        if resp.ok:
+            property_details = resp.json()
+            return render_template('property.html', property_details=property_details, property_id=property_id)
+        else:
+            return redirect(url_for('page_not_found'))
+    else:
+        return redirect(url_for('page_not_found'))
 
 
 @app.route('/logout', methods=['GET'])
