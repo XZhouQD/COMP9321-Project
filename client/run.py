@@ -58,7 +58,7 @@ def register():
         except requests.exceptions.ConnectionError:
             return Response("<script> window.alert('No connection between the server!') </script>")
         if resp.status_code == 200:
-            return render_template('login.html', registerSuccessfully=True, is_login=is_login)
+            return redirect(url_for('login'))
         elif resp.status_code == 400:
             return render_template ('register.html', errorMsg=resp.json()['message'], is_login=is_login)
         else:
@@ -109,7 +109,7 @@ def get_property():
         return render_template('property_selection.html')
 
 
-@app.route('/property/<string:property_id>', methods=['GET'])
+@app.route('/property/<string:property_id>', methods=['GET', 'POST'])
 def get_property_details(property_id):
     if is_login:
         api_url = server_url + 'property/' + property_id
@@ -117,9 +117,32 @@ def get_property_details(property_id):
         resp = requests.get(api_url, headers=header)
         if resp.ok:
             property_details = resp.json()
-            return render_template('property.html', property_details=property_details, property_id=property_id)
+            api_url = server_url + 'property/' + property_id + '/date_price'
+            resp1 = requests.get(api_url, headers=header)
+            date_price = resp1.json()
+            date_price_list = []
+            for date in date_price.keys():
+                date_price_list.append((date, date_price[date]))
+            if request.method == 'POST':
+                date_time = request.form['date_time']
+                params = {'date': date_time}
+                api_url = server_url + 'property/' + property_id + '/prediction'
+                resp2 = requests.get(api_url, params=params, headers=header)
+                print(resp2.json())
+                price = resp2.json()['predicted_price']
+                return render_template('property.html',
+                                       property_details=property_details,
+                                       property_id=property_id,
+                                       date_price_list=date_price_list,
+                                       prediction_price=price)
+            else:
+                return render_template('property.html',
+                                       property_details=property_details,
+                                       property_id=property_id,
+                                       date_price_list=date_price_list)
         else:
             return redirect(url_for('page_not_found'))
+
     else:
         return redirect(url_for('page_not_found'))
 
@@ -183,9 +206,9 @@ def property_filter():
                 'property_type': request.form['property_type'],
                 'room_type': request.form['room_type'],
                 'accommodates': int(request.form['accommodates']),
-                'cleanliness rating weight': int(request.form['cleanliness rating weight']),
-                'location rating weight': int(request.form['location rating weight']),
-                'communication rating weight': int(request.form['communication rating weight']),
+                'cleanliness rating weight': float(request.form['cleanliness rating weight']),
+                'location rating weight': float(request.form['location rating weight']),
+                'communication rating weight': float(request.form['communication rating weight']),
                 'order_by': request.form['order_by'],
                 'sorting': request.form['sorting'],
                 'page': request.form['page']
@@ -200,7 +223,6 @@ def property_filter():
             return render_template('filter.html', property_list=resp.json()['list'], pages=resp.json()['total'])
     else:
         return redirect(url_for('page_not_found'))
-
 
 
 @app.route('/logout', methods=['GET'])
