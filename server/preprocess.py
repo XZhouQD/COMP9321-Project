@@ -81,6 +81,8 @@ if __name__ == '__main__':
     for col in cols:
         listings_df[col] = listings_df[col].str.strip('$')
         listings_df[col] = listings_df[col].str.replace(',', '')
+    listings_df['price'] = pd.to_numeric(listings_df['price'])
+    listings_df = listings_df[listings_df.price > 20]
 
     # write file
     write_csv(listings_df, "listing.csv")
@@ -103,11 +105,6 @@ if __name__ == '__main__':
 
     calendar_df.set_index("listing_id", inplace=True)
     write_csv(calendar_df, "calendar.csv")
-
-    # remove dollar sign
-    calendar_df["price"] = calendar_df["price"].str.strip('$')
-    listings_df[col] = listings_df[col].str.replace(',', '')
-
 
     # for debug
     # print(calendar_df.head(100).to_string())
