@@ -26,6 +26,8 @@ def predict(suburb, date):
     df["date"] = pd.to_datetime(df["date"])
 
     a = get_listings(df)
+    if surburb not in a:
+        return None
     # print(a)
     listing = get_listing_data(df, suburb)
     listing.drop(['listing_id'], axis=1, inplace=True)
