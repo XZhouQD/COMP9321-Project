@@ -123,23 +123,27 @@ def get_property_details(property_id):
             date_price_list = []
             for date in date_price.keys():
                 date_price_list.append((date, date_price[date]))
+            api_url = server_url + 'property/' + property_id + '/price_estimate'
+            resp3 = requests.get(api_url, headers=header)
+            price2 = resp3.json()['return']
             if request.method == 'POST':
                 date_time = request.form['date_time']
                 params = {'date': date_time}
                 api_url = server_url + 'property/' + property_id + '/prediction'
                 resp2 = requests.get(api_url, params=params, headers=header)
-                print(resp2.json())
                 price = resp2.json()['predicted_price']
                 return render_template('property.html',
                                        property_details=property_details,
                                        property_id=property_id,
                                        date_price_list=date_price_list,
-                                       prediction_price=price)
+                                       prediction_price=price,
+                                       estimate_price=price2)
             else:
                 return render_template('property.html',
                                        property_details=property_details,
                                        property_id=property_id,
-                                       date_price_list=date_price_list)
+                                       date_price_list=date_price_list,
+                                       estimate_price=price2)
         else:
             return redirect(url_for('page_not_found'))
 
