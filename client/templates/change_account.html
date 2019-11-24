@@ -6,21 +6,16 @@
 </head>
 <body style="text-align: center">
     <form method="post" style="margin-top: 20px">
-        <h2>Register</h2>
-        {% if is_login %}
-            <div>You are already logged in.</div>
-        {% else %}
-            <div><b>Change password:</b> <input type="text" name="username" class="text-bar"></div>
-            <div><b>Change Email:</b> <input type="password" name="password" class="text-bar" style="margin-left: 3px;"></div>
-            <div><b>Change preference:</b> </div>
-            <div>Cleanliness: <input type="password" name="confirm_password" style="margin-right: 60px;"> Communication: <input type="text" name="email" style="margin-left: 27px"> Location: <input type="text" name="email" style="margin-left: 27px"></div>
-            <button class="login-button">Register</button>
-            {% if notFilledInError %}
-                <div style="font-size: 14px; color: red;">Please fill in all blanks.</div>
-            {% endif %}
-            {% if errorMsg %}
-                <div style="font-size: 14px; color: red;">{{ errorMsg }}</div>
-            {% endif %}
+        <h2>Update profile</h2>
+        <div><b>Old password:</b> <input type="password" name="old_password" class="text-bar"></div>
+        <div><b>New password:</b> <input type="password" name="new_password" class="text-bar"></div>
+        <div><b>Confirm new password:</b> <input type="password" name="confirm_new_password" class="text-bar"></div>
+        <div><b>Change Email:</b> <input type="text" name="email" class="text-bar" style="margin-left: 3px;"></div>
+        <div style="margin-bottom: 10px"><b>Change preference:</b> </div>
+        <div>Cleanliness: <input type="text" name="cleanliness" style="width: 40px"> Communication: <input type="text" name="communication" style="width: 40px"> Location: <input type="text" name="location" style="width: 40px"></div>
+        <button style="margin-top: 20px" class="login-button">Register</button>
+        {% if message %}
+            <div style="font-size: 14px; color: green;">{{ message }}</div>
         {% endif %}
     </form>
 </body>

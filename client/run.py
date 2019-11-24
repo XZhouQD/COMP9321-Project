@@ -90,7 +90,7 @@ def dashboard():
                                    location_weight=location_weight,
                                    communication_weight=communication_weight)
         else:
-            redirect(url_for('page_not_found'))
+            return redirect(url_for('page_not_found'))
     else:
         return redirect(url_for('page_not_found'))
 
@@ -225,6 +225,40 @@ def property_filter():
         else:
             resp = requests.get(api_url, headers=header)
             return render_template('filter.html', property_list=resp.json()['list'], pages=resp.json()['total'])
+    else:
+        return redirect(url_for('page_not_found'))
+
+
+@app.route('/dashboard/update_profile', methods=['GET','POST'])
+def update_profile():
+    global token
+    global is_login
+    if is_login:
+        if request.method == 'POST':
+            header = {'AUTH-TOKEN': token}
+            old_password = request.form['old_password']
+            new_password = request.form['new_password']
+            confirm_new_password = request.form['confirm_new_password']
+            email = request.form['email']
+            cleanliness = request.form['cleanliness']
+            communication = request.form['communication']
+            location = request.form['location']
+            if confirm_new_password != "" and new_password != "" and old_password != "":
+                api_url = server_url + 'user/change_password'
+                resp = requests.post(api_url, json={"old_password": old_password,
+                                             "new_password": new_password,
+                                             "repeat_new_password": confirm_new_password}, headers=header)
+                token = None
+                is_login = False
+            if email != "":
+                api_url = server_url + 'user/change_email'
+                requests.post(api_url, json={'new_email': email}, headers=header)
+            if cleanliness != "" and communication != "" and location != "":
+                api_url = server_url + 'user/prefs'
+                requests.post(api_url, json={"cleanliness": float(cleanliness), "location": float(location), "communication": float(communication)}, headers=header)
+            return render_template('change_account.html', message='Success!')
+        else:
+            return render_template('change_account.html')
     else:
         return redirect(url_for('page_not_found'))
 
