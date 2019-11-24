@@ -39,7 +39,7 @@
         <div style="float: left; width: 70%; text-align: left; margin-left: 5%">
             {% for property_details in property_list %}
             <div>
-                <h2 style="margin-top:30px">{{ property_details['name'] }}</h2>
+                <h2 style="margin-top:30px"><a href="/property/{{ property_details['property_id'] }}">{{ property_details['name'] }}</a></h2>
                 <h3 style="margin-top:5px; color:red"><b>Price: </b>$ {{ property_details['price'] }}</h3>
                 <div style="margin-top:20px"><b>Host name: </b>{{ property_details['host_name'] }}</div>
                 <div style="margin-top:5px"><b>City: </b>{{ property_details['city'] }}</div>

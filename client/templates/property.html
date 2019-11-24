@@ -24,6 +24,14 @@
     <a style="margin-left: 10px">Communication: </a>{{ property_details[property_id]['review_scores_communication'] }}
     <a style="margin-left: 10px">Location: </a>{{ property_details[property_id]['review_scores_location'] }}
 </div>
+<form method="post" style="margin-top: 20px">
+    <div>Predict price of property in specific date: <input type="text" name="date_time" class="text-bar"><button> GO </button></div>
+    <div>Price: {{ prediction_price }}</div>
+</form>
+<div style="margin-top: 30px">----- date --------- price -</div>
+{% for (date, price) in date_price_list %}
+    <div>{{ date }} ---- ${{ price }}</div>
+{% endfor %}
 
 
 
