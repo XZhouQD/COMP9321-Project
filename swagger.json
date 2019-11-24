@@ -1,0 +1,620 @@
+{
+    "swagger": "2.0",
+    "basePath": "/",
+    "paths": {
+        "/property/": {
+            "post": {
+                "responses": {
+                    "401": {
+                        "description": "Auth Failed"
+                    },
+                    "400": {
+                        "description": "Validation Error"
+                    },
+                    "200": {
+                        "description": "Property Created Successfully"
+                    }
+                },
+                "description": "Add a new property based on different aspects",
+                "operationId": "post_property",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Property"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/property/{id}": {
+            "parameters": [
+                {
+                    "in": "path",
+                    "description": "The Property identifier",
+                    "name": "id",
+                    "required": true,
+                    "type": "integer"
+                }
+            ],
+            "delete": {
+                "responses": {
+                    "404": {
+                        "description": "Property was not found"
+                    },
+                    "401": {
+                        "description": "Auth Failed"
+                    },
+                    "200": {
+                        "description": "Successful"
+                    }
+                },
+                "description": "Delete properties by ID",
+                "operationId": "delete_property_with_id",
+                "tags": [
+                    "Properties"
+                ]
+            },
+            "get": {
+                "responses": {
+                    "404": {
+                        "description": "Property was not found"
+                    },
+                    "200": {
+                        "description": "Successful"
+                    }
+                },
+                "description": "Get properties by ID",
+                "operationId": "get_property_with_id",
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/property/{id}/date_price": {
+            "parameters": [
+                {
+                    "in": "path",
+                    "description": "The Property identifier",
+                    "name": "id",
+                    "required": true,
+                    "type": "integer"
+                }
+            ],
+            "get": {
+                "responses": {
+                    "401": {
+                        "description": "Auth Failed"
+                    },
+                    "404": {
+                        "description": "Property was not found"
+                    },
+                    "200": {
+                        "description": "Successful"
+                    }
+                },
+                "description": "Get properties datetime and price by ID",
+                "operationId": "get_price_list",
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/property/{id}/prediction": {
+            "parameters": [
+                {
+                    "in": "path",
+                    "description": "The property identifier",
+                    "name": "id",
+                    "required": true,
+                    "type": "integer"
+                }
+            ],
+            "get": {
+                "responses": {
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Auth Failed"
+                    },
+                    "200": {
+                        "description": "Successful"
+                    }
+                },
+                "description": "Predict price of property in specific date",
+                "operationId": "get_prediction",
+                "parameters": [
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/property/{id}/price_estimate": {
+            "parameters": [
+                {
+                    "in": "path",
+                    "description": "The Property identifier",
+                    "name": "id",
+                    "required": true,
+                    "type": "integer"
+                }
+            ],
+            "get": {
+                "responses": {
+                    "404": {
+                        "description": "Property was not found"
+                    },
+                    "200": {
+                        "description": "Successful"
+                    }
+                },
+                "description": "Get estimated price for property by estimating similar properties in the neighbourhood",
+                "operationId": "get_estimate_return_with_id",
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/property_list/": {
+            "get": {
+                "responses": {
+                    "400": {
+                        "description": "Validation Error"
+                    },
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "description": "Get a property list filtered by many different aspects",
+                "operationId": "get_property_list",
+                "parameters": [
+                    {
+                        "name": "min_price",
+                        "in": "query",
+                        "type": "integer",
+                        "default": 0
+                    },
+                    {
+                        "name": "max_price",
+                        "in": "query",
+                        "type": "integer",
+                        "default": 0
+                    },
+                    {
+                        "name": "suburb",
+                        "in": "query",
+                        "type": "string",
+                        "default": "All"
+                    },
+                    {
+                        "name": "property_type",
+                        "in": "query",
+                        "type": "string",
+                        "default": "All",
+                        "enum": [
+                            "All",
+                            "Aparthotel",
+                            "Apartment",
+                            "Barn",
+                            "Bed and breakfast",
+                            "Boat",
+                            "Boutique hotel",
+                            "Bungalow",
+                            "Cabin",
+                            "Camper/rv",
+                            "Campsite",
+                            "Casa particular(cuba)",
+                            "Castle",
+                            "Cave",
+                            "Chalet",
+                            "Condominium",
+                            "Cottage",
+                            "Dome house",
+                            "Earth house",
+                            "Farm stay",
+                            "Guest suite",
+                            "Guesthouse",
+                            "Heritage hotel(India)",
+                            "Hostel",
+                            "Hotel",
+                            "House",
+                            "Hut",
+                            "Island",
+                            "Loft",
+                            "Nature lodge",
+                            "Other",
+                            "Resort",
+                            "Serviced apartment",
+                            "Tent",
+                            "Tiny house",
+                            "Tipi",
+                            "Townhouse",
+                            "Train",
+                            "Treehouse",
+                            "Villa",
+                            "Yurt"
+                        ],
+                        "collectionFormat": "multi"
+                    },
+                    {
+                        "name": "room_type",
+                        "in": "query",
+                        "type": "string",
+                        "default": "All",
+                        "enum": [
+                            "All",
+                            "Private room",
+                            "Entire home/apt",
+                            "Shared room"
+                        ],
+                        "collectionFormat": "multi"
+                    },
+                    {
+                        "name": "accommodates",
+                        "in": "query",
+                        "type": "integer",
+                        "default": 0
+                    },
+                    {
+                        "name": "cleanliness rating weight",
+                        "in": "query",
+                        "type": "number",
+                        "default": 1
+                    },
+                    {
+                        "name": "location rating weight",
+                        "in": "query",
+                        "type": "number",
+                        "default": 1
+                    },
+                    {
+                        "name": "communication rating weight",
+                        "in": "query",
+                        "type": "number",
+                        "default": 1
+                    },
+                    {
+                        "name": "order_by",
+                        "in": "query",
+                        "type": "string",
+                        "default": "price",
+                        "enum": [
+                            "price",
+                            "total_rating",
+                            "customized_rating"
+                        ],
+                        "collectionFormat": "multi"
+                    },
+                    {
+                        "name": "sorting",
+                        "in": "query",
+                        "type": "string",
+                        "default": "ascending",
+                        "enum": [
+                            "ascending",
+                            "descending"
+                        ],
+                        "collectionFormat": "multi"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "type": "integer",
+                        "default": 1
+                    }
+                ],
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/register": {
+            "post": {
+                "responses": {
+                    "400": {
+                        "description": "Registration Failed"
+                    },
+                    "200": {
+                        "description": "Successful"
+                    }
+                },
+                "description": "Generates a new user with new username, email and password",
+                "operationId": "post_register",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Register"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/token": {
+            "get": {
+                "responses": {
+                    "401": {
+                        "description": "Auth failed"
+                    },
+                    "200": {
+                        "description": "Successful"
+                    }
+                },
+                "description": "Generates an authentication token with new username and password",
+                "operationId": "get_token",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "query",
+                        "type": "string"
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/user/": {
+            "get": {
+                "responses": {
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "401": {
+                        "description": "Auth Failed"
+                    },
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "description": "Get current logged-in user profile",
+                "operationId": "get_profile",
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/user/change_email": {
+            "post": {
+                "responses": {
+                    "400": {
+                        "description": "Password Update Error"
+                    },
+                    "200": {
+                        "description": "Update Email Success"
+                    }
+                },
+                "description": "Change existing email of user",
+                "operationId": "post_change_email",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Email_Change"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/user/change_password": {
+            "post": {
+                "responses": {
+                    "400": {
+                        "description": "Password Update Error"
+                    },
+                    "200": {
+                        "description": "Update Password Success"
+                    }
+                },
+                "description": "Change existing password of user",
+                "operationId": "post_change_password",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Password_Change"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Properties"
+                ]
+            }
+        },
+        "/user/prefs": {
+            "post": {
+                "responses": {
+                    "400": {
+                        "description": "Validation Error"
+                    },
+                    "200": {
+                        "description": "Update User Preferences Success"
+                    }
+                },
+                "description": "Update preferences on different aspect of ratings",
+                "operationId": "post_prefernces",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Prefs"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Properties"
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "Property Dataset",
+        "version": "1.0",
+        "description": "Property hosting system along with price prediction, property return estimate"
+    },
+    "produces": [
+        "application/json"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "securityDefinitions": {
+        "API-KEY": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "AUTH-TOKEN"
+        }
+    },
+    "security": [
+        {
+            "API-KEY": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Properties",
+            "description": "Default namespace"
+        }
+    ],
+    "definitions": {
+        "Register": {
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "repeat_password": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "Prefs": {
+            "properties": {
+                "cleanliness": {
+                    "type": "number"
+                },
+                "location": {
+                    "type": "number"
+                },
+                "communication": {
+                    "type": "number"
+                }
+            },
+            "type": "object"
+        },
+        "Password_Change": {
+            "properties": {
+                "old_password": {
+                    "type": "string"
+                },
+                "new_password": {
+                    "type": "string"
+                },
+                "repeat_new_password": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "Email_Change": {
+            "properties": {
+                "new_email": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "Property": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "host_neighbourhood": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "property_type": {
+                    "type": "string"
+                },
+                "room_type": {
+                    "type": "string"
+                },
+                "accommodates": {
+                    "type": "integer"
+                },
+                "bathrooms": {
+                    "type": "integer"
+                },
+                "bedrooms": {
+                    "type": "integer"
+                },
+                "beds": {
+                    "type": "integer"
+                },
+                "amenities": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "security_deposit": {
+                    "type": "number"
+                },
+                "cleaning_fee": {
+                    "type": "number"
+                },
+                "guests_included": {
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        }
+    },
+    "responses": {
+        "ParseError": {
+            "description": "When a mask can't be parsed"
+        },
+        "MaskError": {
+            "description": "When any error occurs on mask"
+        }
+    }
+}
