@@ -70,7 +70,7 @@ class AuthenticationToken:
             'role': user['role'],
             'creation_time': time()
         }
-        print(info)
+        #print(info)
         return jwt.encode(info, self._secret_key, algorithm='HS256')
 
     def validate_token(self, token):
@@ -183,7 +183,7 @@ class Token(Resource):
             return {"message": "authorization has been refused for those credentials."}, 401
         else:
             token = auth.generate_token(user).decode()
-            print(jwt.decode(token, SECRET_KEY, algorithm='HS256'))
+            #print(jwt.decode(token, SECRET_KEY, algorithm='HS256'))
             return {'token': auth.generate_token(user).decode()}
 
 
@@ -476,7 +476,7 @@ class PropertyList(Resource):
         for idx in ds:
             property = ds[idx]
             ret.append(property)
-        return {"list":ret, "current":page, "total":total_pages}
+        return {"list":ret, "current":page, "total":total_pages}, 200
 
 
 @api.route('/property/<int:id>/date_price')
@@ -489,10 +489,14 @@ class PriceList(Resource):
     @requires_auth
     def get(self, id):
         date_price_list = []
+        #print(calendar)
+        #print(id)
+        #print("before query = " + str(calendar.shape[0]))
         calendar_results = calendar[calendar.listing_id == id]
+        #print("length = " + str(calendar_results.shape[0]))
         for row_num in range(0, calendar_results.shape[0]):
             date_price_list.append((calendar_results.iloc[row_num]['date'], calendar_results.iloc[row_num]['price']))
-        return dict(date_price_list)
+        return dict(date_price_list), 200
 
 @api.route('/property/<int:id>/prediction')
 @api.param('id', 'The property identifier')
@@ -554,5 +558,6 @@ if __name__ == '__main__':
 
     # initialize calendar_df => calendar
     calendar = read_csv('calendar.csv')
+    calendar['listing_id'] = pd.to_numeric(calendar['listing_id'])
 
     app.run(debug=True)
