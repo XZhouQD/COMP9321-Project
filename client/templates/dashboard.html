@@ -11,9 +11,7 @@
 <div style="margin-top: 40px"><a href="{{ url_for('property_filter') }}">Property filter</a> - Get a property list by many different arguments</div>
 <div style="margin-top: 40px">{{ username }}  {{ email }}  {{ role }}</div>
 <div>Preference: cleanliness - {{ cleanliness_weight }}, location - {{ location_weight }}, communication - {{ communication_weight }}</div>
-<div>Change password</div>
-<div>Change email</div>
-<div>Change preference</div>
+<div style="margin-top: 20px"><a href="{{ url_for('update_profile') }}">Update profile</div>
 
 
 </body>
